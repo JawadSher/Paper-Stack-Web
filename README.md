@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PaperStack Web
 
-## Getting Started
+PaperStack Web is a Next.js admin and public browsing portal for Pakistan board past papers. It includes public paper discovery, PDF previews, Clerk-protected admin tools, and static mock data ready to be replaced by Supabase.
 
-First, run the development server:
+## Setup
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create `.env` or `.env.local` with:
 
-## Learn More
+```bash
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+Clerk sign-ups are disabled in the Clerk dashboard. Admin access is authorized with:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+{
+  "role": "admin"
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+stored in `user.publicMetadata`.
 
-## Deploy on Vercel
+## Folder Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `src/app/(public)` public landing, browse, search, paper viewer, common questions
+- `src/app/(admin)` Clerk-protected admin portal
+- `src/components/shared` shared UI used by public and admin
+- `src/components/public` public site components
+- `src/components/admin` admin-only components
+- `src/constants` mock data for boards, subjects, papers, questions, media
+- `src/types` shared TypeScript types
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Adding Boards and Subjects
+
+For now, edit static data:
+
+- Boards: `src/constants/boards.ts`
+- Subjects: `src/constants/subjects.ts`
+- Admin metadata adapters: `src/constants/admin-boards.ts`, `src/constants/admin-subjects.ts`
+
+Later these lists can be replaced with Supabase queries while keeping the page/component contracts.
+
+## Deployment
+
+Vercel is recommended:
+
+1. Push the repository to GitHub.
+2. Import the project in Vercel.
+3. Add the Clerk environment variables.
+4. Set `NEXT_PUBLIC_SITE_URL` to the production URL.
+5. Deploy.
+
+## Scripts
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```

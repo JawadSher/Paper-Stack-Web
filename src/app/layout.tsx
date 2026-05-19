@@ -40,12 +40,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+        <meta name="apple-mobile-web-app-title" content="PaperStack" />
       </head>
       <body
         className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} min-h-screen antialiased`}
       >
-        <ClerkProvider signInUrl="/sign-in">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-foreground focus:px-4 focus:py-2 focus:text-background"
+        >
+          Skip to content
+        </a>
+        <ClerkProvider
+          signInUrl="/sign-in"
+          signInFallbackRedirectUrl="/dashboard"
+        >
           <AppProviders>
             {children}
             <Toaster richColors />

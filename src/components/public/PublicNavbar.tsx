@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { PaperStackLogo } from "@/components/shared/PaperStackLogo";
 import { cn } from "@/lib/utils";
+import { AdminDashboardLink } from "./AdminDashboardLink";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type PublicNavbarProps = Record<string, never>;
@@ -44,6 +45,7 @@ export function PublicNavbar({}: PublicNavbarProps) {
 
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
+          <AdminDashboardLink />
           <Link
             href={appStoreHref}
             className={cn(buttonVariants(), "bg-ps-coral hover:bg-ps-coral/90")}
@@ -92,6 +94,7 @@ export function PublicNavbar({}: PublicNavbarProps) {
                 >
                   Open App
                 </Link>
+                <AdminDashboardLink mobile />
               </nav>
             </SheetContent>
           </Sheet>
