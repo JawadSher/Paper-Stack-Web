@@ -91,9 +91,13 @@ function QrPlaceholder() {
 
 export function AppDownloadSection({}: AppDownloadSectionProps) {
   return (
-    <section id="download-app" className="py-24">
+    <section
+      id="download-app"
+      className="relative overflow-hidden bg-[#1A1917] px-4 py-24 sm:px-6 lg:px-8"
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_700px_420px_at_50%_20%,rgba(207,102,121,0.13),transparent_62%)]" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative grid overflow-hidden rounded-2xl bg-ps-coral text-white shadow-xl lg:grid-cols-[1fr_320px]">
+        <div className="relative grid overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#D97757] via-[#C96442] to-[#B4552D] text-white shadow-[0_30px_100px_rgba(0,0,0,0.38)] lg:grid-cols-[1fr_360px]">
           {Array.from({ length: 8 }).map((_, index) => (
             <span
               key={index}
@@ -106,11 +110,11 @@ export function AppDownloadSection({}: AppDownloadSectionProps) {
               }}
             />
           ))}
-          <div className="relative p-8 sm:p-12">
-            <h2 className="text-3xl font-semibold md:text-4xl">
+          <div className="relative p-8 sm:p-12 lg:p-14">
+            <h2 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight md:text-6xl">
               Take your papers everywhere
             </h2>
-            <p className="mt-4 max-w-2xl text-lg text-white/85">
+            <p className="mt-5 max-w-2xl text-lg text-white/85 md:text-xl">
               Download the PaperStack app for offline access
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -118,7 +122,7 @@ export function AppDownloadSection({}: AppDownloadSectionProps) {
                 href="https://play.google.com/store"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-14 items-center gap-3 rounded-lg bg-black px-5 text-left text-white shadow-lg transition-all duration-300 hover:scale-[1.04] hover:shadow-2xl"
+                className="inline-flex h-14 items-center gap-3 rounded-xl bg-black px-5 text-left text-white shadow-lg transition-all duration-300 hover:scale-[1.04] hover:shadow-2xl"
               >
                 <Play className="size-6" />
                 <span>
@@ -130,7 +134,7 @@ export function AppDownloadSection({}: AppDownloadSectionProps) {
                 href="https://www.apple.com/app-store/"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-14 items-center gap-3 rounded-lg bg-black px-5 text-left text-white shadow-lg transition-all duration-300 hover:scale-[1.04] hover:shadow-2xl"
+                className="inline-flex h-14 items-center gap-3 rounded-xl bg-black px-5 text-left text-white shadow-lg transition-all duration-300 hover:scale-[1.04] hover:shadow-2xl"
               >
                 <Apple className="size-6" />
                 <span>
@@ -142,8 +146,9 @@ export function AppDownloadSection({}: AppDownloadSectionProps) {
               </a>
             </div>
           </div>
-          <div className="relative flex items-center justify-center bg-black/10 p-8">
-            <div className="size-44 rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-white/50">
+          <div className="relative flex items-center justify-center bg-black/12 p-8 lg:p-12">
+            <div className="absolute inset-y-0 left-0 hidden w-px bg-white/10 lg:block" />
+            <div className="size-48 rotate-2 rounded-[1.5rem] bg-white p-5 shadow-2xl ring-1 ring-white/50 transition-transform duration-300 hover:rotate-0 hover:scale-[1.03]">
               <QrPlaceholder />
             </div>
           </div>

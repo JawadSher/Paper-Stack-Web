@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -21,8 +21,8 @@ import { cn } from "@/lib/utils";
 export type HeroSectionProps = Record<string, never>;
 
 const headlineLines = [
-  ["Every", "past", "paper."],
-  ["One", "place."],
+  { text: "Every past paper.", accent: false },
+  { text: "One place.", accent: true },
 ];
 
 const trustBadges = [
@@ -171,27 +171,28 @@ export function HeroSection({}: HeroSectionProps) {
               </motion.div>
 
               <h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-tight text-white md:text-7xl">
-                {headlineLines.map((line, lineIndex) => (
+                {headlineLines.map((line, index) => (
                   <span
-                    key={line.join(" ")}
-                    className={lineIndex === 1 ? "block text-[#CF6679]" : "block"}
+                    key={line.text}
+                    className={cn(
+                      "block overflow-hidden",
+                      line.accent && "text-[#CF6679]",
+                    )}
                   >
-                    {line.map((word, wordIndex) => {
-                      const delay = (lineIndex * 3 + wordIndex) * 0.08;
-
-                      return (
-                        <motion.span
-                          key={word}
-                          initial={shouldAnimate ? "hidden" : false}
-                          animate="visible"
-                          variants={fadeUp}
-                          custom={delay}
-                          className="mr-3 inline-block [will-change:transform]"
-                        >
-                          {word}
-                        </motion.span>
-                      );
-                    })}
+                    <span
+                      className={cn(
+                        "inline-block whitespace-nowrap",
+                        shouldAnimate && "ps-typewriter-line",
+                      )}
+                      style={
+                        {
+                          "--ps-type-chars": line.text.length,
+                          "--ps-type-delay": `${index * 0.95}s`,
+                        } as CSSProperties
+                      }
+                    >
+                      {line.text}
+                    </span>
                   </span>
                 ))}
               </h1>
@@ -270,41 +271,55 @@ export function HeroSection({}: HeroSectionProps) {
             initial={shouldAnimate ? "hidden" : false}
             animate="visible"
             variants={phoneEntrance}
-            className="relative mx-auto hidden w-full max-w-[430px] [perspective:1200px] [will-change:transform] sm:block"
+            className="relative mx-auto hidden w-full max-w-[400px] [perspective:1400px] [will-change:transform] sm:block"
           >
             <div className="absolute -inset-8 rounded-full bg-[#2DB896]/10 blur-3xl" />
-            <div className="relative mx-auto [animation:ps-float_6s_ease-in-out_infinite]">
-              <div className="mx-auto h-[640px] w-[314px] rounded-[2.65rem] bg-gradient-to-br from-[#3A3835] to-[#2A2825] p-px shadow-[0_30px_80px_rgba(0,0,0,0.42)]">
-                <div className="h-full rounded-[2.65rem] bg-[#1C1C1E] p-2.5">
-                  <div className="h-full overflow-hidden rounded-[2rem] bg-[#FAF9F7] text-[#1A1917] shadow-inner">
+            <div className="relative mx-auto w-[326px] [animation:ps-float_6s_ease-in-out_infinite]">
+              <div className="absolute -left-1 top-28 h-14 w-1 rounded-l-full bg-[#3A3835]/85" />
+              <div className="absolute -left-1 top-48 h-20 w-1 rounded-l-full bg-[#3A3835]/85" />
+              <div className="absolute -right-1 top-40 h-24 w-1 rounded-r-full bg-[#3A3835]/85" />
+              <div className="mx-auto h-[652px] w-[326px] rounded-[3rem] bg-gradient-to-br from-[#4A4845] via-[#1C1C1E] to-[#090909] p-[3px] shadow-[0_34px_90px_rgba(0,0,0,0.52)] ring-1 ring-white/12">
+                <div className="h-full rounded-[2.8rem] bg-[#0B0B0D] p-3">
+                  <div className="h-full overflow-hidden rounded-[2.35rem] bg-[#FAF9F7] text-[#1A1917] shadow-[inset_0_0_22px_rgba(0,0,0,0.08)]">
                     <div className="relative flex h-full flex-col">
-                      <div className="absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-[#1C1C1E]" />
+                      <div className="absolute left-1/2 top-3 z-20 h-7 w-28 -translate-x-1/2 rounded-full bg-[#111113] shadow-[inset_0_1px_2px_rgba(255,255,255,0.14)]" />
 
-                      <div className="space-y-4 px-4 pb-4 pt-10">
+                      <div className="space-y-4 px-4 pb-4 pt-14">
                         <div className="flex items-center justify-between">
                           <PaperStackLogo showText size="sm" />
-                          <span className="size-2 rounded-full bg-[#CF6679] shadow-[0_0_14px_rgba(207,102,121,0.7)]" />
+                          <span className="size-2.5 rounded-full bg-[#CF6679] shadow-[0_0_14px_rgba(207,102,121,0.7)] [animation:ps-pulse-dot_1.8s_ease-in-out_infinite]" />
                         </div>
 
-                        <div className="flex h-11 items-center gap-2 rounded-2xl bg-[#F1EFE8] px-3 text-sm text-[#6B6860]">
+                        <motion.div
+                          initial={shouldAnimate ? { opacity: 0, y: 12 } : false}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.75, duration: 0.45 }}
+                          className="flex h-12 items-center gap-2 rounded-2xl bg-[#F1EFE8] px-3 text-sm text-[#6B6860]"
+                        >
                           <Search className="size-4" />
-                          Search papers...
-                        </div>
+                          <span className="relative">
+                            Search papers...
+                            <span className="ml-0.5 inline-block h-4 w-px translate-y-0.5 bg-[#6B6860]/70 [animation:ps-type-caret_0.9s_steps(1)_infinite]" />
+                          </span>
+                        </motion.div>
 
                         <div className="flex gap-2 overflow-hidden">
                           {["Physics", "Chemistry", "Mathematics"].map(
                             (chip, index) => (
-                              <span
+                              <motion.span
                                 key={chip}
+                                initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.9 + index * 0.08 }}
                                 className={cn(
-                                  "rounded-full px-3 py-1.5 text-xs font-medium",
+                                  "whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium shadow-sm",
                                   index === 0
-                                    ? "bg-[#CF6679] text-white"
+                                    ? "bg-[#CF6679] text-white shadow-[#CF6679]/25"
                                     : "bg-white text-[#6B6860] shadow-sm",
                                 )}
                               >
                                 {chip}
-                              </span>
+                              </motion.span>
                             ),
                           )}
                         </div>
@@ -317,7 +332,7 @@ export function HeroSection({}: HeroSectionProps) {
                               animate="visible"
                               variants={fadeUp}
                               custom={0.8 + index * 0.12}
-                              className="rounded-2xl border border-[#E8E6E0] bg-white p-3 shadow-sm [will-change:transform]"
+                              className="rounded-2xl border border-[#E8E6E0] bg-white p-3 shadow-[0_8px_18px_rgba(26,25,23,0.08)] transition-transform duration-300 hover:-translate-y-1 [will-change:transform]"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div>
@@ -349,7 +364,7 @@ export function HeroSection({}: HeroSectionProps) {
                         </div>
                       </div>
 
-                      <div className="mt-auto grid grid-cols-4 border-t border-[#E8E6E0] bg-white px-3 py-2 text-[10px] font-medium text-[#6B6860]">
+                      <div className="mt-auto grid grid-cols-4 border-t border-[#E8E6E0] bg-white px-3 pb-5 pt-2 text-[10px] font-medium text-[#6B6860]">
                         <span className="grid justify-items-center gap-1 text-[#CF6679]">
                           <Home className="size-4" />
                           Home
@@ -359,7 +374,7 @@ export function HeroSection({}: HeroSectionProps) {
                           Search
                         </span>
                         <span className="relative grid justify-items-center gap-1">
-                          <span className="absolute right-4 top-0 grid size-4 place-items-center rounded-full bg-[#CF6679] text-[9px] text-white">
+                          <span className="absolute right-4 top-0 grid size-4 place-items-center rounded-full bg-[#CF6679] text-[9px] text-white [animation:ps-badge-pop_1.7s_ease-in-out_infinite]">
                             3
                           </span>
                           <Download className="size-4" />
@@ -370,6 +385,7 @@ export function HeroSection({}: HeroSectionProps) {
                           Profile
                         </span>
                       </div>
+                      <div className="absolute bottom-2 left-1/2 h-1 w-28 -translate-x-1/2 rounded-full bg-[#1C1C1E]/80" />
                     </div>
                   </div>
                 </div>

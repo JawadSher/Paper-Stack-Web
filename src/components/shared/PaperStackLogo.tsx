@@ -4,6 +4,8 @@ import Image from "next/image";
 export type PaperStackLogoProps = {
   size?: "sm" | "md" | "lg";
   showText?: boolean;
+  className?: string;
+  textClassName?: string;
 };
 
 const sizeClasses = {
@@ -15,13 +17,15 @@ const sizeClasses = {
 export function PaperStackLogo({
   size = "md",
   showText = false,
+  className,
+  textClassName,
 }: PaperStackLogoProps) {
   const classes = sizeClasses[size];
 
   const icon = "/icon-clean.png";
 
   return (
-    <div className={cn("inline-flex items-center", classes.wrapper)}>
+    <div className={cn("inline-flex items-center", classes.wrapper, className)}>
       <Image
         alt="logo"
         src={icon}
@@ -36,6 +40,7 @@ export function PaperStackLogo({
           className={cn(
             "inline-flex items-baseline gap-1 font-semibold text-foreground",
             classes.text,
+            textClassName,
           )}
         >
           <span>Paper</span>
