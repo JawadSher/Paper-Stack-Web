@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export type PaperStackLogoProps = {
   size?: "sm" | "md" | "lg";
@@ -17,43 +18,24 @@ export function PaperStackLogo({
 }: PaperStackLogoProps) {
   const classes = sizeClasses[size];
 
+  const icon = "/icon.png";
+
   return (
     <div className={cn("inline-flex items-center", classes.wrapper)}>
-      <svg
-        viewBox="0 0 48 48"
-        aria-hidden="true"
-        className={cn("shrink-0", classes.icon)}
-      >
-        <rect
-          x="12"
-          y="18"
-          width="25"
-          height="18"
-          rx="3"
-          className="fill-ps-coral/35"
-        />
-        <rect
-          x="9"
-          y="14"
-          width="25"
-          height="18"
-          rx="3"
-          className="fill-ps-coral/65"
-        />
-        <rect
-          x="12"
-          y="9"
-          width="25"
-          height="18"
-          rx="3"
-          className="origin-center -rotate-6 fill-ps-coral"
-        />
-      </svg>
-      {showText ? (
+      <Image
+        alt="logo"
+        src={icon}
+        width={36}
+        height={36}
+        className={classes.icon}
+        priority={true}
+      />
+
+      {showText && (
         <span className={cn("font-semibold text-foreground", classes.text)}>
           PaperStack
         </span>
-      ) : null}
+      )}
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { Lora, Poppins, Roboto_Mono } from "next/font/google";
 import { AppProviders } from "@/components/shared/app-providers";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-
 const fontSans = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -25,7 +24,12 @@ const fontMono = Roboto_Mono({
 
 export const metadata: Metadata = {
   title: "Paper Stack",
-  description: "Past papers, boards, subjects, and admin tools for Paper Stack.",
+  description:
+    "Past papers, boards, subjects, and admin tools for Paper Stack.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -35,6 +39,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+      </head>
       <body
         className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} min-h-screen antialiased`}
       >
