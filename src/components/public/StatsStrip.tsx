@@ -11,57 +11,100 @@ const stats = [
   { value: 5, suffix: "", label: "Years" },
 ];
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("en-US").format(value);
+function easeOutExpo(value: number) {
+  return value === 1 ? 1 : 1 - 2 ** (-10 * value);
+}
+
+function CountUp({
+  value,
+  suffix,
+  active,
+  delay,
+}: {
+  value: number;
+  suffix: string;
+  active: boolean;
+  delay: number;
+}) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+
+    let frame = 0;
+    let startTime: number | null = null;
+    let animationFrame = 0;
+    const duration = 1800;
+    const timeout = window.setTimeout(() => {
+      const tick = (time: number) => {
+        startTime ??= time;
+        const progress = Math.min(1, (time - startTime) / duration);
+        setCount(Math.round(value * easeOutExpo(progress)));
+        frame += 1;
+        if (progress < 1 && frame < 180) animationFrame = window.requestAnimationFrame(tick);
+      };
+      animationFrame = window.requestAnimationFrame(tick);
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.cancelAnimationFrame(animationFrame);
+    };
+  }, [active, delay, value]);
+
+  return (
+    <>
+      {new Intl.NumberFormat("en-US").format(count)}
+      {active ? suffix : ""}
+    </>
+  );
 }
 
 export function StatsStrip({}: StatsStripProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const ref = useRef<HTMLElement>(null);
+  const [active, setActive] = useState(false);
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
+    if (!ref.current) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setHasAnimated(true);
+          setActive(true);
           observer.disconnect();
         }
       },
-      { threshold: 0.35 },
+      { threshold: 0.25 },
     );
-
-    observer.observe(element);
+    observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!hasAnimated) return;
-
-    let frame = 0;
-    const totalFrames = 48;
-    const tick = () => {
-      frame += 1;
-      setProgress(Math.min(1, frame / totalFrames));
-      if (frame < totalFrames) window.requestAnimationFrame(tick);
-    };
-
-    window.requestAnimationFrame(tick);
-  }, [hasAnimated]);
-
   return (
-    <section ref={ref} className="border-y bg-ps-surface dark:bg-secondary/40">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px px-4 py-8 sm:px-6 md:grid-cols-4 lg:px-8">
-        {stats.map((stat) => (
-          <div key={stat.label} className="px-4 py-4 text-center">
-            <p className="text-3xl font-semibold text-foreground md:text-4xl">
-              {formatNumber(Math.round(stat.value * progress))}
-              {hasAnimated ? stat.suffix : ""}
+    <section
+      ref={ref}
+      className="border-y border-border/40"
+      style={{
+        background:
+          "radial-gradient(ellipse 60% 100% at 50% 50%, rgba(207,102,121,0.04) 0%, transparent 70%)",
+      }}
+    >
+      <div className="mx-auto grid max-w-7xl grid-cols-2 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
+        {stats.map((stat, index) => (
+          <div
+            key={stat.label}
+            className="relative px-4 py-4 text-center md:[&:not(:last-child)]:border-r md:[&:not(:last-child)]:border-border/40"
+          >
+            <p className="text-5xl font-bold text-foreground">
+              <CountUp
+                value={stat.value}
+                suffix={stat.suffix}
+                active={active}
+                delay={index * 150}
+              />
             </p>
-            <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
+            <p className="mt-3 text-sm uppercase tracking-wider text-muted-foreground">
+              {stat.label}
+            </p>
           </div>
         ))}
       </div>

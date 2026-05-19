@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { BookOpen, Download, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { PaperStackLogo } from "@/components/shared/PaperStackLogo";
+import { fadeUp, scaleIn, slideInRight } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
 export type HeroSectionProps = Record<string, never>;
@@ -13,21 +17,39 @@ export function HeroSection({}: HeroSectionProps) {
   return (
     <section className="min-h-[80vh] overflow-hidden">
       <div className="mx-auto grid min-h-[80vh] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-        <div className="space-y-8">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          className="space-y-8"
+        >
           <div className="space-y-5">
-            <Badge className="bg-ps-coral/12 text-ps-coral">
-              Pakistan board papers
-            </Badge>
-            <h1 className="max-w-4xl text-5xl font-semibold leading-[1.04] text-foreground md:text-7xl">
+            <motion.div variants={fadeUp}>
+              <Badge className="bg-ps-coral/12 text-ps-coral">
+                Pakistan board papers
+              </Badge>
+            </motion.div>
+            <motion.h1
+              variants={fadeUp}
+              custom={1}
+              className="max-w-4xl text-5xl font-semibold leading-[1.04] text-foreground md:text-7xl"
+            >
               Every past paper. One place.
-            </h1>
-            <p className="max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl">
+            </motion.h1>
+            <motion.p
+              variants={fadeUp}
+              custom={2}
+              className="max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl"
+            >
               Access 5 years of past papers from all Pakistan boards. Browse
               free, download offline in the app.
-            </p>
+            </motion.p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <motion.div
+            variants={fadeUp}
+            custom={3}
+            className="flex flex-col gap-3 sm:flex-row"
+          >
             <Link
               href="/browse"
               className={cn(
@@ -48,21 +70,32 @@ export function HeroSection({}: HeroSectionProps) {
               <Download className="size-5" />
               Download App
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-wrap gap-2">
-            {trustBadges.map((badge) => (
-              <span
+          <motion.div
+            variants={fadeUp}
+            custom={4}
+            className="flex flex-wrap gap-2"
+          >
+            {trustBadges.map((badge, index) => (
+              <motion.span
                 key={badge}
-                className="rounded-4xl border bg-card px-3 py-1 text-sm font-medium text-muted-foreground"
+                variants={scaleIn}
+                custom={index + 5}
+                className="rounded-4xl border bg-card px-3 py-1 text-sm font-medium text-muted-foreground shadow-sm"
               >
                 {badge}
-              </span>
+              </motion.span>
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="relative mx-auto w-full max-w-[420px]">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={slideInRight}
+          className="relative mx-auto w-full max-w-[420px]"
+        >
           <div className="absolute -inset-8 rounded-full bg-ps-teal/10 blur-3xl" />
           <div className="relative mx-auto h-[620px] w-[310px] rounded-[2.4rem] border-[10px] border-foreground bg-foreground p-2 shadow-2xl">
             <div className="h-full overflow-hidden rounded-[1.75rem] bg-background">
@@ -89,7 +122,7 @@ export function HeroSection({}: HeroSectionProps) {
                       <div>
                         <p className="font-medium">{board}</p>
                         <p className="text-xs text-muted-foreground">
-                          Class 10 • Annual 2024
+                          Class 10 - Annual 2024
                         </p>
                       </div>
                     </div>
@@ -104,7 +137,7 @@ export function HeroSection({}: HeroSectionProps) {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

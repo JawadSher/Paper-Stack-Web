@@ -41,11 +41,8 @@ export function SearchBar({
         onChange={(event) => setValue(event.target.value)}
         autoFocus={autoFocus}
         placeholder={placeholder}
-        className="h-9 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+        className="h-9 border-0 bg-transparent shadow-none focus-visible:ring-0 px-4"
       />
-      <Badge variant="secondary" className="hidden font-mono sm:inline-flex">
-        ⌘K
-      </Badge>
     </div>
   );
 }

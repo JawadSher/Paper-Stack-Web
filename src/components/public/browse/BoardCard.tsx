@@ -27,7 +27,7 @@ export function BoardCard({ board, paperCount }: BoardCardProps) {
         </Badge>
       </div>
       <div className="mt-6 flex items-center justify-between gap-3 text-sm">
-        <span className="rounded-4xl bg-secondary px-3 py-1 font-medium">
+        <span className="rounded-4xl px-3 py-1 font-medium" style={{ backgroundColor: board.color, color: 'white' }}>
           Classes 9-12
         </span>
         <span className="inline-flex items-center gap-1 text-muted-foreground">

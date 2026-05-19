@@ -201,9 +201,128 @@
 
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes ps-shimmer {
+  0% {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+
+@keyframes ps-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes ps-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes ps-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes ps-draw-line {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ps-particle-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(12px, -18px, 0);
+    opacity: 0.6;
+  }
+}
+
+.ps-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.ps-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.35),
+    transparent
+  );
+  transform: translateX(-140%) skewX(-18deg);
+}
+
+.ps-shimmer:hover::before {
+  animation: ps-shimmer 0.8s ease;
+}
+
+.ps-hover-border-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.ps-hover-border-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgb(207 102 121 / 0.45),
+    transparent
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transform: translateX(-40%);
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s ease;
+  pointer-events: none;
+}
+
+.ps-hover-border-sweep:hover::after {
+  opacity: 1;
+  transform: translateX(40%);
 }
