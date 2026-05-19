@@ -18,7 +18,7 @@ export function PaperStackLogo({
 }: PaperStackLogoProps) {
   const classes = sizeClasses[size];
 
-  const icon = "/icon.png";
+  const icon = "/icon-clean.png";
 
   return (
     <div className={cn("inline-flex items-center", classes.wrapper)}>

@@ -35,29 +35,59 @@ export function AdminSidebar({
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-r bg-sidebar text-sidebar-foreground transition-[width] duration-200",
-        collapsed ? "w-[84px]" : "w-[260px]",
+        "flex h-full shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground transition-[width] duration-200",
+        collapsed ? "w-[88px]" : "w-[260px]",
         className,
       )}
     >
-      <div className="flex h-16 items-center justify-between gap-2 border-b px-4">
-        <div className={cn("flex min-w-0 items-center gap-2", collapsed && "justify-center")}>
-          <PaperStackLogo size="sm" showText={!collapsed} />
-          {!collapsed ? <Badge className="bg-ps-coral text-white">Admin</Badge> : null}
+      <div
+        className={cn(
+          "relative border-b",
+          collapsed
+            ? "flex h-20 flex-col items-center justify-center gap-2 px-2"
+            : "flex h-16 items-center justify-between gap-2 px-4",
+        )}
+      >
+        <div
+          className={cn(
+            "flex min-w-0 items-center",
+            collapsed
+              ? "grid size-11 place-items-center rounded-2xl bg-transparent"
+              : "gap-2",
+          )}
+        >
+          <PaperStackLogo size={collapsed ? "md" : "sm"} showText={!collapsed} />
+          {!collapsed ? (
+            <Badge className="bg-ps-coral text-white">Admin</Badge>
+          ) : null}
         </div>
         <Button
           type="button"
           size="icon-sm"
           variant="ghost"
-          className="hidden md:inline-flex"
+          className={cn(
+            "hidden md:inline-flex",
+            collapsed &&
+              "absolute -right-3 top-1/2 size-7 -translate-y-1/2 rounded-full border bg-sidebar shadow-sm hover:bg-sidebar-accent",
+          )}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           onClick={() => onCollapsedChange(!collapsed)}
         >
-          <ChevronLeft className={cn("size-4 transition-transform", collapsed && "rotate-180")} />
+          <ChevronLeft
+            className={cn(
+              "size-4 transition-transform",
+              collapsed && "rotate-180",
+            )}
+          />
         </Button>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
+      <nav
+        className={cn(
+          "flex flex-1 flex-col gap-1 py-4",
+          collapsed ? "items-center px-3" : "px-3",
+        )}
+      >
         {adminNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
@@ -69,7 +99,8 @@ export function AdminSidebar({
                 active
                   ? "bg-ps-coral text-white"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                collapsed && "justify-center px-0",
+                collapsed && "size-11 justify-center px-0",
+                !collapsed && "w-full",
               )}
             >
               <Icon className="size-5 shrink-0" />
@@ -79,7 +110,7 @@ export function AdminSidebar({
 
           return collapsed ? (
             <Tooltip key={item.href}>
-              <TooltipTrigger>{link}</TooltipTrigger>
+              <TooltipTrigger render={link} />
               <TooltipContent side="right">{item.label}</TooltipContent>
             </Tooltip>
           ) : (
@@ -88,12 +119,30 @@ export function AdminSidebar({
         })}
       </nav>
 
-      <div className={cn("border-t p-4", collapsed && "grid justify-items-center gap-3")}>
-        <UserButton />
+      <div className="border-t p-3">
         {!collapsed ? (
-          <p className="mt-3 text-xs text-muted-foreground">v0.1.0</p>
+          <div className="rounded-xl border border-sidebar-border bg-sidebar-accent/55 p-3">
+            <div className="flex items-center gap-3">
+              <UserButton />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">Admin account</p>
+                <p className="text-xs text-muted-foreground">Signed in</p>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between rounded-lg bg-sidebar px-2.5 py-1.5 text-xs text-muted-foreground">
+              <span>PaperStack</span>
+              <span className="font-mono">v0.1.0</span>
+            </div>
+          </div>
         ) : (
-          <p className="text-[10px] text-muted-foreground">v0.1</p>
+          <div className="grid justify-items-center gap-3">
+            <div className="grid size-11 place-items-center rounded-2xl bg-transparent">
+              <UserButton />
+            </div>
+            <span className="rounded-full border border-sidebar-border px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+              v0.1
+            </span>
+          </div>
         )}
       </div>
     </aside>

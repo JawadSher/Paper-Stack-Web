@@ -38,11 +38,11 @@ export function MediaBrowser() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <StorageUsageBar />
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant={view === "grid" ? "default" : "outline"} onClick={() => setView("grid")}><Grid2X2 className="size-4" />Grid</Button>
-          <Button type="button" size="sm" variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")}><List className="size-4" />List</Button>
-          <Select value={sort} onValueChange={(value) => setSort((value ?? "newest") as Sort)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="newest">Newest</SelectItem><SelectItem value="oldest">Oldest</SelectItem><SelectItem value="largest">Largest</SelectItem><SelectItem value="smallest">Smallest</SelectItem></SelectContent></Select>
-          <Select value={filter} onValueChange={(value) => setFilter((value ?? "all") as Filter)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="pdf">PDF</SelectItem><SelectItem value="image">Images</SelectItem></SelectContent></Select>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant={view === "grid" ? "default" : "outline"} className="h-9 min-w-24 px-3" onClick={() => setView("grid")}><Grid2X2 className="size-4" />Grid</Button>
+          <Button type="button" variant={view === "list" ? "default" : "outline"} className="h-9 min-w-24 px-3" onClick={() => setView("list")}><List className="size-4" />List</Button>
+          <Select value={sort} onValueChange={(value) => setSort((value ?? "newest") as Sort)}><SelectTrigger className="h-9 min-w-32 capitalize"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="newest">Newest</SelectItem><SelectItem value="oldest">Oldest</SelectItem><SelectItem value="largest">Largest</SelectItem><SelectItem value="smallest">Smallest</SelectItem></SelectContent></Select>
+          <Select value={filter} onValueChange={(value) => setFilter((value ?? "all") as Filter)}><SelectTrigger className="h-9 min-w-28 capitalize"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="pdf">PDF</SelectItem><SelectItem value="image">Images</SelectItem></SelectContent></Select>
         </div>
       </div>
       {selected.length ? <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3"><p className="mr-auto text-sm font-medium">{selected.length} files selected</p><Button size="sm" variant="destructive"><Trash2 className="size-4" />Delete selected</Button><Button size="sm" variant="outline"><Download className="size-4" />Download selected</Button></div> : null}

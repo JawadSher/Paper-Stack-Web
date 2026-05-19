@@ -23,13 +23,13 @@ export function DashboardCharts({
   uploadData,
 }: DashboardChartsProps) {
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
-      <Card>
+    <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle>Papers by board</CardTitle>
         </CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <CardContent className="h-80 min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <BarChart data={boardData} layout="vertical" margin={{ left: 16 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" hide />
@@ -47,12 +47,12 @@ export function DashboardCharts({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle>Uploads over time</CardTitle>
         </CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <CardContent className="h-80 min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <LineChart data={uploadData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="month" tickLine={false} axisLine={false} />
