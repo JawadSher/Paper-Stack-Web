@@ -10,11 +10,11 @@ const config = {
   theme: {
     extend: {
       colors: {
-        "ps-coral": "#CF6679",
-        "ps-teal": "#2DB896",
-        "ps-purple": "#7C6FF7",
-        "ps-warm": "#FAF9F7",
-        "ps-surface": "#F1EFE8",
+        "ps-coral": "oklch(0.6171 0.1375 39.0427)",
+        "ps-teal": "oklch(0.64 0.116 174.2)",
+        "ps-purple": "oklch(0.6898 0.1581 290.4107)",
+        "ps-warm": "oklch(0.9818 0.0054 95.0986)",
+        "ps-surface": "oklch(0.9245 0.0138 92.9892)",
       },
     },
   },

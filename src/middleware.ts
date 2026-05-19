@@ -5,11 +5,26 @@ const isPublicRoute = createRouteMatcher([
   "/browse(.*)",
   "/search(.*)",
   "/paper(.*)",
+  "/common-questions(.*)",
   "/sign-in(.*)",
 ]);
 
+const isAdminRoute = createRouteMatcher([
+  "/admin(.*)",
+  "/dashboard(.*)",
+  "/papers(.*)",
+  "/boards(.*)",
+  "/subjects(.*)",
+  "/classes(.*)",
+  "/questions(.*)",
+  "/media(.*)",
+  "/settings(.*)",
+]);
+
 export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
+  // Student-facing routes stay open. Admin surfaces require a signed-in Clerk
+  // session first, then the admin layout verifies publicMetadata.role.
+  if (!isPublicRoute(request) && isAdminRoute(request)) {
     await auth.protect();
   }
 });

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 const navItems = [
   ["Dashboard", "/dashboard"],
@@ -12,11 +14,18 @@ const navItems = [
   ["Settings", "/settings"],
 ] as const;
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await currentUser();
+
+  // Clerk sign-in proves identity; this metadata role gates admin authority.
+  if (user?.publicMetadata.role !== "admin") {
+    redirect("/");
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r bg-card px-5 py-6 md:block">
