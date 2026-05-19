@@ -147,10 +147,10 @@ export const colors = {
     federal: "#C96442",
     punjab: "#B05730",
     sindh: "#9C87F5",
-    kpk: "#DBD3F0",
+    kpk: "#7C6FF7",
     balochistan: "#B4552D",
     ajk: "#D97757",
-    gilgitBaltistan: "#DED8C4",
+    gilgitBaltistan: "#2DB896",
   },
 } as const;
 

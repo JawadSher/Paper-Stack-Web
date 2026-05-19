@@ -32,8 +32,14 @@ export function PaperStackLogo({
       />
 
       {showText && (
-        <span className={cn("font-semibold text-foreground", classes.text)}>
-          PaperStack
+        <span
+          className={cn(
+            "inline-flex items-baseline gap-1 font-semibold text-foreground",
+            classes.text,
+          )}
+        >
+          <span>Paper</span>
+          <span className="text-primary">Stack</span>
         </span>
       )}
     </div>

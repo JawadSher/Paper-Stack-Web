@@ -22,7 +22,7 @@ export function ScrollProgress() {
 
   return (
     <div
-      className="fixed left-0 top-0 z-[100] h-0.5 bg-[#CF6679] transition-[width] duration-100 ease-linear"
+      className="fixed left-0 top-0 z-100 h-0.5 bg-primary transition-[width] duration-100 ease-linear"
       style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
     />
   );
