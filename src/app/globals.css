@@ -201,11 +201,38 @@
 
   html {
     @apply font-sans;
+    scrollbar-color: color-mix(in oklch, var(--primary) 72%, var(--border))
+      color-mix(in oklch, var(--background) 88%, var(--secondary));
+    scrollbar-width: thin;
     scroll-behavior: smooth;
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--background) 88%, var(--secondary));
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border: 2px solid var(--background);
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--primary) 72%, var(--border));
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }
 
@@ -270,6 +297,33 @@
   }
 }
 
+@keyframes ps-download-ring {
+  0% {
+    stroke-dashoffset: 53;
+  }
+  50% {
+    stroke-dashoffset: 22;
+  }
+  100% {
+    stroke-dashoffset: -47;
+  }
+}
+
+@keyframes ps-scroll-cue {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0);
+  }
+  12%,
+  78% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-50%, 6px);
+  }
+}
+
 .ps-shimmer {
   position: relative;
   overflow: hidden;
@@ -325,4 +379,15 @@
 .ps-hover-border-sweep:hover::after {
   opacity: 1;
   transform: translateX(40%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
 }
