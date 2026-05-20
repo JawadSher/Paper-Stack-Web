@@ -6,6 +6,10 @@ export async function GET() {
     const boardCount = await prisma.board.count()
     const subjectCount = await prisma.subject.count()
 
+
+    console.log(boardCount);
+    console.log(subjectCount);
+
     return NextResponse.json({
       status: 'ok',
       database: 'connected',

@@ -9,7 +9,7 @@ import { StatsStrip } from "@/components/public/StatsStrip";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://paperstack.pk",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://paper-stack-web.vercel.app",
   ),
   title: "PaperStack | Every Past Paper. One Place.",
   description:
@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 };
 
 export default function LandingPage() {
+
   return (
     <>
       <HeroSection />

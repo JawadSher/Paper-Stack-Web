@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -15,14 +15,16 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { TypewriterEffect } from "@/components/ui/typewriter-effect";
 import { PaperStackLogo } from "@/components/shared/PaperStackLogo";
 import { cn } from "@/lib/utils";
 
 export type HeroSectionProps = Record<string, never>;
 
-const headlineLines = [
-  { text: "Every past paper.", accent: false },
-  { text: "One place.", accent: true },
+const headlineWords = [
+  { text: "Every" },
+  { text: "past" },
+  { text: "paper." },
 ];
 
 const trustBadges = [
@@ -171,30 +173,17 @@ export function HeroSection({}: HeroSectionProps) {
               </motion.div>
 
               <h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-tight text-white md:text-7xl">
-                {headlineLines.map((line, index) => (
-                  <span
-                    key={line.text}
-                    className={cn(
-                      "block overflow-hidden",
-                      line.accent && "text-[#CF6679]",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "inline-block whitespace-nowrap",
-                        shouldAnimate && "ps-typewriter-line",
-                      )}
-                      style={
-                        {
-                          "--ps-type-chars": line.text.length,
-                          "--ps-type-delay": `${index * 0.95}s`,
-                        } as CSSProperties
-                      }
-                    >
-                      {line.text}
-                    </span>
-                  </span>
-                ))}
+                <span className="block min-h-[1.05em] break-words">
+                  {shouldAnimate ? (
+                    <TypewriterEffect
+                      words={headlineWords}
+                      cursorClassName="h-[0.9em] translate-y-[0.12em] bg-white"
+                    />
+                  ) : (
+                    "Every past paper."
+                  )}
+                </span>
+                <span className="block text-[#CF6679]">One place.</span>
               </h1>
 
               <motion.p
