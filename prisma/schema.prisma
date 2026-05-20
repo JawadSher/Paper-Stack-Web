@@ -1,16 +1,244 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+// BOARDS
+model Board {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String
+  shortName    String   @unique @map("short_name")
+  province     Province
+  description  String?
+  websiteUrl   String?  @map("website_url")
+  color        String   @default("#CF6679")
+  displayOrder Int      @default(0) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
+  papers             Paper[]
+  boardClassSubjects BoardClassSubject[]
+  commonQuestions    CommonQuestion[]
+  paperAnalytics     PaperAnalytic[]
 
+  @@map("boards")
+}
+
+// SUBJECTS
+model Subject {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String   @unique
+  icon         String   @default("book-open")
+  displayOrder Int      @default(0) @map("display_order")
+  isCompulsory Boolean  @default(false) @map("is_compulsory")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  papers             Paper[]
+  boardClassSubjects BoardClassSubject[]
+  commonQuestions    CommonQuestion[]
+  paperAnalytics     PaperAnalytic[]
+
+  @@map("subjects")
+}
+
+// BOARD CLASS SUBJECTS (junction)
+model BoardClassSubject {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boardId    String  @map("board_id") @db.Uuid
+  subjectId  String  @map("subject_id") @db.Uuid
+  classLevel Int     @map("class_level")
+  isActive   Boolean @default(true) @map("is_active")
+
+  board   Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, subjectId, classLevel])
+  @@map("board_class_subjects")
+}
+
+// PAPERS
+model Paper {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boardId       String      @map("board_id") @db.Uuid
+  subjectId     String      @map("subject_id") @db.Uuid
+  classLevel    Int         @map("class_level")
+  year          Int
+  session       Session
+  title         String
+  storagePath   String?     @map("storage_path")
+  pdfUrl        String?     @map("pdf_url")
+  fileSizeBytes BigInt?     @map("file_size_bytes")
+  status        PaperStatus @default(DRAFT)
+  viewCount     Int         @default(0) @map("view_count")
+  downloadCount Int         @default(0) @map("download_count")
+  publishedAt   DateTime?   @map("published_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  board              Board               @relation(fields: [boardId], references: [id], onDelete: Restrict)
+  subject            Subject             @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  questionPaperLinks QuestionPaperLink[]
+  paperAnalytics     PaperAnalytic[]
+
+  @@unique([boardId, subjectId, classLevel, year, session])
+  @@index([boardId])
+  @@index([subjectId])
+  @@index([classLevel, year(sort: Desc)])
+  @@index([status])
+  @@index([boardId, subjectId, classLevel])
+  @@map("papers")
+}
+
+// COMMON QUESTIONS
+model CommonQuestion {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subjectId     String           @map("subject_id") @db.Uuid
+  boardId       String           @map("board_id") @db.Uuid
+  classLevel    Int              @map("class_level")
+  questionText  String           @map("question_text")
+  chapterName   String           @map("chapter_name")
+  chapterId     String           @map("chapter_id")
+  section       QuestionSection?
+  marks         Int?
+  frequency     Int              @default(2)
+  yearsAppeared Int[]            @map("years_appeared")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  subject            Subject             @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  board              Board               @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  questionPaperLinks QuestionPaperLink[]
+
+  @@index([subjectId, boardId, classLevel])
+  @@index([frequency(sort: Desc)])
+  @@map("common_questions")
+}
+
+// QUESTION PAPER LINKS
+model QuestionPaperLink {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId String @map("question_id") @db.Uuid
+  paperId    String @map("paper_id") @db.Uuid
+  pageNumber Int?   @map("page_number")
+  year       Int
+
+  question CommonQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  paper    Paper          @relation(fields: [paperId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, paperId])
+  @@map("question_paper_links")
+}
+
+// PAPER ANALYTICS
+model PaperAnalytic {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paperId    String        @map("paper_id") @db.Uuid
+  eventType  AnalyticEvent @map("event_type")
+  platform   Platform
+  boardId    String?       @map("board_id") @db.Uuid
+  subjectId  String?       @map("subject_id") @db.Uuid
+  classLevel Int?          @map("class_level")
+  year       Int?
+  eventDate  DateTime      @default(dbgenerated("CURRENT_DATE")) @map("event_date") @db.Date
+  count      Int           @default(1)
+
+  paper   Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  board   Board?   @relation(fields: [boardId], references: [id])
+  subject Subject? @relation(fields: [subjectId], references: [id])
+
+  @@unique([paperId, eventType, platform, eventDate])
+  @@index([eventDate(sort: Desc)])
+  @@index([paperId, eventDate(sort: Desc)])
+  @@map("paper_analytics")
+}
+
+// APP SETTINGS
+model AppSetting {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String   @unique
+  value       Json
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+
+  @@map("app_settings")
+}
+
+// FEATURE FLAGS
+model FeatureFlag {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flagName    String   @unique @map("flag_name")
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+
+  @@map("feature_flags")
+}
+
+// ADMIN AUDIT LOG
+model AdminAuditLog {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adminUserId String      @map("admin_user_id")
+  action      AuditAction
+  entityType  String      @map("entity_type")
+  entityId    String?     @map("entity_id") @db.Uuid
+  oldValue    Json?       @map("old_value")
+  newValue    Json?       @map("new_value")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([adminUserId])
+  @@map("admin_audit_log")
+}
+
+enum Province {
+  Federal
+  Punjab
+  Sindh
+  KPK
+  Balochistan
+  AJK
+  Gilgit_Baltistan @map("Gilgit-Baltistan")
+}
+
+enum Session {
+  annual
+  supplementary
+  model
+}
+
+enum PaperStatus {
+  DRAFT
+  LIVE
+  PROCESSING
+}
+
+enum QuestionSection {
+  short_questions
+  long_questions
+  mcq
+  practical
+}
+
+enum AnalyticEvent {
+  view
+  download
+}
+
+enum Platform {
+  web
+  mobile
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+}
