@@ -45,7 +45,17 @@ const provinces = [
   "Gilgit-Baltistan",
 ] as const;
 
-const colorPresets = ["#C96442", "#B05730", "#9C87F5", "#DBD3F0", "#B4552D", "#D97757"];
+const colorPresets = [
+  "#3B82F6",
+  "#8B5CF6",
+  "#14B8A6",
+  "#F97316",
+  "#EF4444",
+  "#6366F1",
+  "#10B981",
+  "#B65E3C",
+  "#D97757",
+];
 const classLevels: ClassLevel[] = [9, 10, 11, 12];
 
 const boardSchema = z.object({
@@ -54,7 +64,9 @@ const boardSchema = z.object({
   province: z.enum(provinces),
   websiteUrl: z.string().url().optional().or(z.literal("")),
   description: z.string().max(200),
-  classes: z.array(z.union([z.literal(9), z.literal(10), z.literal(11), z.literal(12)])).min(1),
+  classes: z
+    .array(z.union([z.literal(9), z.literal(10), z.literal(11), z.literal(12)]))
+    .min(1),
   color: z.string().min(1),
   status: z.enum(["active", "inactive"]),
 });
@@ -67,7 +79,11 @@ export type BoardFormProps = {
   paperCount?: number;
 };
 
-export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps) {
+export function BoardForm({
+  mode,
+  initialBoard,
+  paperCount = 0,
+}: BoardFormProps) {
   const router = useRouter();
   const createBoard = useCreateBoard();
   const updateBoard = useUpdateBoard();
@@ -142,45 +158,79 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl space-y-6">
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="max-w-3xl space-y-6"
+    >
       <div className="grid gap-4 rounded-lg border bg-card p-5 md:grid-cols-2">
         <Field label="Board name" error={form.formState.errors.name?.message}>
-          <Input {...form.register("name")} placeholder="Board of Intermediate and Secondary Education, Lahore" />
+          <Input
+            {...form.register("name")}
+            placeholder="Board of Intermediate and Secondary Education, Lahore"
+          />
         </Field>
-        <Field label={`Short name (${values.shortName.length}/25)`} error={form.formState.errors.shortName?.message}>
-          <Input {...form.register("shortName")} maxLength={25} placeholder="BISE Lahore" />
+        <Field
+          label={`Short name (${values.shortName.length}/25)`}
+          error={form.formState.errors.shortName?.message}
+        >
+          <Input
+            {...form.register("shortName")}
+            maxLength={25}
+            placeholder="BISE Lahore"
+          />
         </Field>
         <Field label="Province">
           <Controller
             control={form.control}
             name="province"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={(value) => field.onChange(value ?? "Punjab")}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <Select
+                value={field.value}
+                onValueChange={(value) => field.onChange(value ?? "Punjab")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {provinces.map((province) => (
-                    <SelectItem key={province} value={province}>{province}</SelectItem>
+                    <SelectItem key={province} value={province}>
+                      {province}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             )}
           />
         </Field>
-        <Field label="Website URL" error={form.formState.errors.websiteUrl?.message}>
-          <Input {...form.register("websiteUrl")} placeholder="https://example.edu.pk" />
+        <Field
+          label="Website URL"
+          error={form.formState.errors.websiteUrl?.message}
+        >
+          <Input
+            {...form.register("websiteUrl")}
+            placeholder="https://example.edu.pk"
+          />
         </Field>
         <div className="md:col-span-2">
-          <Field label={`Description (${values.description.length}/200)`} error={form.formState.errors.description?.message}>
+          <Field
+            label={`Description (${values.description.length}/200)`}
+            error={form.formState.errors.description?.message}
+          >
             <Textarea {...form.register("description")} maxLength={200} />
           </Field>
         </div>
-        <Field label="Classes supported" error={form.formState.errors.classes?.message}>
+        <Field
+          label="Classes supported"
+          error={form.formState.errors.classes?.message}
+        >
           <div className="grid grid-cols-4 gap-2">
             {classLevels.map((classLevel) => (
               <Button
                 key={classLevel}
                 type="button"
-                variant={values.classes.includes(classLevel) ? "default" : "outline"}
+                variant={
+                  values.classes.includes(classLevel) ? "default" : "outline"
+                }
                 onClick={() => toggleClass(classLevel)}
               >
                 {classLevel}
@@ -193,8 +243,15 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
             control={form.control}
             name="status"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={(value) => field.onChange((value ?? "active") as BoardStatus)}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <Select
+                value={field.value}
+                onValueChange={(value) =>
+                  field.onChange((value ?? "active") as BoardStatus)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
@@ -213,7 +270,9 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
                 className="size-8 rounded-full ring-2 ring-transparent data-[selected=true]:ring-foreground"
                 data-selected={values.color === color}
                 style={{ backgroundColor: color }}
-                onClick={() => form.setValue("color", color, { shouldValidate: true })}
+                onClick={() =>
+                  form.setValue("color", color, { shouldValidate: true })
+                }
               />
             ))}
           </div>
@@ -221,7 +280,11 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
       </div>
       <div className="flex gap-3">
         <Button type="submit" className="bg-ps-coral hover:bg-ps-coral/90">
-          {isPending ? "Saving..." : mode === "create" ? "Create board" : "Save changes"}
+          {isPending
+            ? "Saving..."
+            : mode === "create"
+              ? "Create board"
+              : "Save changes"}
         </Button>
         <Button type="button" variant="ghost">
           <Link href="/boards">Cancel</Link>
@@ -230,14 +293,24 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
       {mode === "edit" ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-5">
           <h2 className="font-semibold text-destructive">Danger zone</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Delete this board permanently.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Delete this board permanently.
+          </p>
           <AlertDialog>
-            <AlertDialogTrigger render={<Button type="button" variant="destructive" className="mt-4"><Trash2 className="size-4" />Delete board</Button>} />
+            <AlertDialogTrigger
+              render={
+                <Button type="button" variant="destructive" className="mt-4">
+                  <Trash2 className="size-4" />
+                  Delete board
+                </Button>
+              }
+            />
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete board?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Deleting this board will also delete all {paperCount} papers associated with it. This cannot be undone.
+                  Deleting this board will also delete all {paperCount} papers
+                  associated with it. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -263,7 +336,15 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
