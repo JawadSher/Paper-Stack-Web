@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { Board } from "@/types";
 
 export type BoardCardProps = {
@@ -12,8 +13,15 @@ export function BoardCard({ board, paperCount }: BoardCardProps) {
   return (
     <Link
       href={`/browse/${board.id}`}
-      className="group block rounded-lg border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-ps-coral/50"
-      style={{ borderLeftColor: board.color, borderLeftWidth: 4 }}
+      className={cn(
+        "group block rounded-lg border bg-card p-5 transition-all hover:-translate-y-0.5",
+        "hover:[border-color:var(--board-color)]",
+      )}
+      style={{
+        "--board-color": board.color,
+        borderLeftColor: board.color,
+        borderLeftWidth: 4,
+      } as React.CSSProperties}
     >
       <div className="flex items-start justify-between gap-4">
         <div>

@@ -14,7 +14,9 @@ export type BoardDetailPageProps = {
 export default async function BoardDetailPage({ params }: BoardDetailPageProps) {
   const { boardId } = await params;
   const board = boards.find((item) => item.id === boardId);
-  if (!board) notFound();
+  if (!board){
+     notFound();
+  }
 
   const previewSubjects = subjects.filter((subject) => subject.classLevel === 10).slice(0, 6);
 
