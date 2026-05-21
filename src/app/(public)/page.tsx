@@ -5,6 +5,7 @@ import { CommonQuestionsTeaser } from "@/components/public/CommonQuestionsTeaser
 import { FeaturesSection } from "@/components/public/FeaturesSection";
 import { HeroSection } from "@/components/public/HeroSection";
 import { HowItWorksSection } from "@/components/public/HowItWorksSection";
+import { ScrollProgress } from "@/components/public/ScrollProgress";
 import { StatsStrip } from "@/components/public/StatsStrip";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default function LandingPage() {
 
   return (
     <>
+      <ScrollProgress />
       <HeroSection />
       <StatsStrip />
       <FeaturesSection />

@@ -1,27 +1,56 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useParams } from "next/navigation";
 import { BoardForm } from "@/components/admin/boards/BoardForm";
+import type { AdminBoard } from "@/components/admin/boards/types";
+import { SkeletonCard } from "@/components/shared/SkeletonCard";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { adminBoards } from "@/constants/admin-boards";
-import { mockPapers } from "@/constants/papers";
+import { useGetAdminBoardById } from "@/hooks/admin/queries/useGetAdminBoardById";
 
-export type EditBoardPageProps = {
-  params: Promise<{ id: string }>;
-};
+export default function EditBoardPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+  const { data: board, isLoading } = useGetAdminBoardById(id);
 
-export default async function EditBoardPage({ params }: EditBoardPageProps) {
-  const { id } = await params;
-  const board = adminBoards.find((item) => item.id === id);
-  if (!board) notFound();
-  const paperCount = mockPapers.filter((paper) => paper.boardId === board.id).length;
+  const initialBoard: AdminBoard | undefined = board
+    ? {
+        id: board.id,
+        name: board.name,
+        shortName: board.shortName,
+        description: board.description ?? "",
+        province:
+          board.province === "Gilgit_Baltistan"
+            ? "Gilgit-Baltistan"
+            : board.province,
+        classes: [9, 10, 11, 12],
+        color: board.color,
+        websiteUrl: board.websiteUrl ?? "",
+        status: board.isActive ? "active" : "inactive",
+      }
+    : undefined;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Edit board"
-        subtitle={board.name}
-        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Boards", href: "/boards" }, { label: "Edit", href: `/boards/${board.id}/edit` }]}
+        subtitle={initialBoard?.name ?? "Loading board"}
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Boards", href: "/boards" },
+          { label: "Edit", href: `/boards/${id}/edit` },
+        ]}
       />
-      <BoardForm mode="edit" initialBoard={board} paperCount={paperCount} />
+      {isLoading ? (
+        <SkeletonCard />
+      ) : initialBoard ? (
+        <BoardForm
+          mode="edit"
+          initialBoard={initialBoard}
+          paperCount={board?._count.papers ?? 0}
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground">Board not found.</p>
+      )}
     </div>
   );
 }

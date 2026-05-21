@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,11 +15,13 @@ import {
 import type { AdminBoard } from "./types";
 
 export type BoardsTableProps = {
-  boards: AdminBoard[];
-  getPaperCount: (boardId: string) => number;
+  boards: Array<AdminBoard & { paperCount?: number }>;
+  totalPages?: number;
+  page?: number;
+  onDelete: (id: string) => void;
 };
 
-export function BoardsTable({ boards, getPaperCount }: BoardsTableProps) {
+export function BoardsTable({ boards, totalPages = 1, page = 1, onDelete }: BoardsTableProps) {
   return (
     <div className="rounded-lg border bg-card">
       <Table>
@@ -46,7 +47,7 @@ export function BoardsTable({ boards, getPaperCount }: BoardsTableProps) {
                 </Badge>
               </TableCell>
               <TableCell>{board.classes.join(", ")}</TableCell>
-              <TableCell>{getPaperCount(board.id)}</TableCell>
+              <TableCell>{board.paperCount ?? 0}</TableCell>
               <TableCell>
                 <Badge variant={board.status === "active" ? "default" : "secondary"}>
                   {board.status === "active" ? "Active" : "Inactive"}
@@ -63,7 +64,7 @@ export function BoardsTable({ boards, getPaperCount }: BoardsTableProps) {
                     type="button"
                     size="icon-sm"
                     variant="ghost"
-                    onClick={() => toast.success("Board delete queued")}
+                    onClick={() => onDelete(board.id)}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -73,6 +74,9 @@ export function BoardsTable({ boards, getPaperCount }: BoardsTableProps) {
           ))}
         </TableBody>
       </Table>
+      <div className="border-t px-4 py-3 text-sm text-muted-foreground">
+        Page {page} of {totalPages}
+      </div>
     </div>
   );
 }

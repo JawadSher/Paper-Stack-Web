@@ -11,7 +11,6 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { Edit, Eye, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,12 +56,19 @@ import {
   formatFileSize,
   formatRelativeDate,
   type AdminPaper,
+  type PaperStatus,
 } from "@/constants/admin-papers";
 import { subjects } from "@/constants/subjects";
 import { cn } from "@/lib/utils";
 
 export type PapersTableProps = {
   papers: AdminPaper[];
+  totalPages?: number;
+  page?: number;
+  onPageChange?: (page: number) => void;
+  onStatusChange: (id: string, status: PaperStatus) => void;
+  onDelete: (paper: AdminPaper) => void;
+  onBulkDelete: (ids: string[]) => void;
 };
 
 function getBoard(paper: AdminPaper) {
@@ -100,7 +106,15 @@ function exportCsv(papers: AdminPaper[]) {
   URL.revokeObjectURL(url);
 }
 
-export function PapersTable({ papers }: PapersTableProps) {
+export function PapersTable({
+  papers,
+  totalPages = 1,
+  page = 1,
+  onPageChange,
+  onStatusChange,
+  onDelete,
+  onBulkDelete,
+}: PapersTableProps) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [selectedPaper, setSelectedPaper] = useState<AdminPaper | null>(null);
 
@@ -187,7 +201,22 @@ export function PapersTable({ papers }: PapersTableProps) {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <PaperStatusBadge status={row.original.status} />,
+        cell: ({ row }) => (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={(event) => {
+              event.stopPropagation();
+              onStatusChange(
+                row.original.id,
+                row.original.status === "live" ? "draft" : "live",
+              );
+            }}
+          >
+            <PaperStatusBadge status={row.original.status} />
+          </Button>
+        ),
       },
       {
         id: "actions",
@@ -220,14 +249,14 @@ export function PapersTable({ papers }: PapersTableProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete paper?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will remove {row.original.title}. Supabase deletion will be wired later.
+                    This will remove {row.original.title} and its storage file.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     variant="destructive"
-                    onClick={() => toast.success("Paper delete queued")}
+                    onClick={() => onDelete(row.original)}
                   >
                     Delete
                   </AlertDialogAction>
@@ -238,7 +267,7 @@ export function PapersTable({ papers }: PapersTableProps) {
         ),
       },
     ],
-    [],
+    [onDelete, onStatusChange],
   );
 
   const table = useReactTable({
@@ -266,7 +295,7 @@ export function PapersTable({ papers }: PapersTableProps) {
       <BulkActionsBar
         selectedCount={selectedRows.length}
         onDeleteSelected={() => {
-          toast.success(`${selectedRows.length} papers delete queued`);
+          onBulkDelete(selectedRows.map((paper) => paper.id));
           setRowSelection({});
         }}
         onExportList={() => exportCsv(selectedRows)}
@@ -344,20 +373,20 @@ export function PapersTable({ papers }: PapersTableProps) {
               type="button"
               size="sm"
               variant="outline"
-              disabled={!table.getCanPreviousPage()}
-              onClick={() => table.previousPage()}
+              disabled={page <= 1}
+              onClick={() => onPageChange?.(page - 1)}
             >
               Previous
             </Button>
             <span className="text-sm text-muted-foreground">
-              Page {pagination.pageIndex + 1} of {table.getPageCount() || 1}
+              Page {page} of {totalPages || 1}
             </span>
             <Button
               type="button"
               size="sm"
               variant="outline"
-              disabled={!table.getCanNextPage()}
-              onClick={() => table.nextPage()}
+              disabled={page >= totalPages}
+              onClick={() => onPageChange?.(page + 1)}
             >
               Next
             </Button>

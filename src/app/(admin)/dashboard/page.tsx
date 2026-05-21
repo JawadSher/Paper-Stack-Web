@@ -24,68 +24,52 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
 import { DataTable, type DataTableColumn } from "@/components/admin/DataTable";
-import { boards } from "@/constants/boards";
-import { mockPapers } from "@/constants/papers";
-import { subjects } from "@/constants/subjects";
-import type { Paper } from "@/types";
+import { SkeletonCard } from "@/components/shared/SkeletonCard";
+import { useGetChartData } from "@/hooks/admin/queries/useGetChartData";
+import { useGetAdminPapers } from "@/hooks/admin/queries/useGetAdminPapers";
+import { useGetDashboardStats } from "@/hooks/admin/queries/useGetDashboardStats";
+import type { PaperWithRelations } from "@/src/types/action-types";
 
 const statCards = [
   {
     label: "Total papers",
-    value: "1,247",
+    valueKey: "totalPapers",
     icon: FileText,
     color: "text-ps-coral bg-ps-coral/12",
   },
   {
     label: "Total boards",
-    value: "26",
+    valueKey: "totalBoards",
     icon: Building2,
     color: "text-ps-teal bg-ps-teal/12",
   },
   {
     label: "Total subjects",
-    value: "44",
+    valueKey: "totalSubjects",
     icon: BookOpen,
     color: "text-ps-purple bg-ps-purple/12",
   },
   {
-    label: "Downloads this month",
-    value: "18,430",
+    label: "New papers this month",
+    valueKey: "newPapersThisMonth",
     icon: Download,
     color: "text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-400/15",
   },
 ];
 
-const boardChartData = boards.slice(0, 8).map((board, index) => ({
-  board: board.shortName.replace("BISE ", ""),
-  papers: 168 - index * 11,
-}));
-
-const uploadChartData = [
-  { month: "Aug", uploads: 82 },
-  { month: "Sep", uploads: 94 },
-  { month: "Oct", uploads: 116 },
-  { month: "Nov", uploads: 131 },
-  { month: "Dec", uploads: 154 },
-  { month: "Jan", uploads: 178 },
-];
-
-const recentPapers = mockPapers.slice(0, 16);
-
-const columns: DataTableColumn<Paper>[] = [
+const columns: DataTableColumn<PaperWithRelations>[] = [
   {
     key: "subject",
     header: "Subject",
-    cell: (paper) =>
-      subjects.find((subject) => subject.id === paper.subjectId)?.name ?? "Unknown",
+    cell: (paper) => paper.subject.name,
   },
   {
     key: "board",
     header: "Board",
-    cell: (paper) =>
-      boards.find((board) => board.id === paper.boardId)?.shortName ?? "Unknown",
+    cell: (paper) => paper.board.shortName,
   },
   {
     key: "class",
@@ -109,7 +93,7 @@ const columns: DataTableColumn<Paper>[] = [
   {
     key: "uploaded",
     header: "Uploaded",
-    cell: (paper) => new Date(paper.createdAt).toLocaleDateString(),
+    cell: (paper) => paper.createdAt.toLocaleDateString(),
   },
   {
     key: "actions",
@@ -159,6 +143,15 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
+  const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
+  const { data: chartData, isLoading: chartLoading } = useGetChartData("30d");
+  const { data: recentPapers } = useGetAdminPapers({
+    page: 1,
+    pageSize: 16,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -183,7 +176,13 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-semibold">{stat.value}</p>
+                {statsLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <p className="text-3xl font-semibold">
+                    {stats?.[stat.valueKey as keyof typeof stats] ?? 0}
+                  </p>
+                )}
               </CardContent>
             </Card>
           );
@@ -198,7 +197,13 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">186</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <p className="text-3xl font-semibold">
+                {stats?.newPapersThisMonth ?? 0}
+              </p>
+            )}
             <p className="mt-2 flex items-center gap-1 text-sm text-ps-teal">
               <TrendingUp className="size-4" />
               12% from last month
@@ -212,8 +217,16 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">Physics</p>
-            <p className="mt-2 text-sm text-muted-foreground">4,920 views</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <p className="text-3xl font-semibold">
+                {stats?.topSubject ?? "None"}
+              </p>
+            )}
+            <p className="mt-2 text-sm text-muted-foreground">
+              {(stats?.totalViews ?? 0).toLocaleString()} views
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -223,14 +236,35 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">68%</p>
-            <Progress value={68} className="mt-4" />
-            <p className="mt-2 text-sm text-muted-foreground">34.2 GB of 50 GB</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <p className="text-3xl font-semibold">
+                {stats?.storageUsedBytes ?? 0} bytes
+              </p>
+            )}
+            <Progress value={0} className="mt-4" />
+            <p className="mt-2 text-sm text-muted-foreground">
+              Storage usage from Supabase
+            </p>
           </CardContent>
         </Card>
       </section>
 
-      <DashboardCharts boardData={boardChartData} uploadData={uploadChartData} />
+      {chartLoading ? (
+        <SkeletonCard variant="stat" />
+      ) : (
+        <DashboardCharts
+          boardData={(chartData?.boardData ?? []).map((item) => ({
+            board: item.boardName,
+            papers: item.paperCount,
+          }))}
+          uploadData={(chartData?.viewsData ?? []).map((item) => ({
+            month: item.date,
+            uploads: item.views,
+          }))}
+        />
+      )}
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
@@ -242,7 +276,11 @@ export default function DashboardPage() {
           </div>
           <Button type="button" variant="outline">View all</Button>
         </div>
-        <DataTable data={recentPapers} columns={columns} getRowKey={(paper) => paper.id} />
+        <DataTable
+          data={recentPapers?.data ?? []}
+          columns={columns}
+          getRowKey={(paper) => paper.id}
+        />
       </section>
 
       <section className="space-y-4">

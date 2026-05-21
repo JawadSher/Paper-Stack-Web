@@ -9,7 +9,9 @@ import { FileDetailPanel } from "@/components/admin/media/FileDetailPanel";
 import { MediaGrid } from "@/components/admin/media/MediaGrid";
 import { MediaListItem } from "@/components/admin/media/MediaListItem";
 import { StorageUsageBar } from "@/components/admin/media/StorageUsageBar";
-import { mediaFiles, type MediaFile } from "@/constants/admin-media";
+import { useDeleteStorageFile } from "@/hooks/admin/mutations/useDeleteStorageFile";
+import { useGetStorageFiles } from "@/hooks/admin/queries/useGetStorageFiles";
+import type { MediaFile } from "@/constants/admin-media";
 
 type Sort = "newest" | "oldest" | "largest" | "smallest";
 type Filter = "all" | "pdf" | "image";
@@ -20,9 +22,19 @@ export function MediaBrowser() {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<string[]>([]);
   const [activeFile, setActiveFile] = useState<MediaFile | null>(null);
+  const { data, isLoading } = useGetStorageFiles();
+  const deleteFile = useDeleteStorageFile();
 
   const files = useMemo(() => {
-    return mediaFiles
+    return (data ?? [])
+      .map<MediaFile>((file) => ({
+        id: file.id ?? file.name,
+        name: file.name,
+        type: file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "image",
+        sizeBytes: file.size ?? 0,
+        uploadedAt: file.createdAt ?? new Date().toISOString(),
+        url: file.name,
+      }))
       .filter((file) => filter === "all" || file.type === filter)
       .sort((a, b) => {
         if (sort === "oldest") return new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
@@ -30,7 +42,7 @@ export function MediaBrowser() {
         if (sort === "smallest") return a.sizeBytes - b.sizeBytes;
         return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
       });
-  }, [filter, sort]);
+  }, [data, filter, sort]);
 
   const toggle = (id: string) => setSelected((items) => (items.includes(id) ? items.filter((item) => item !== id) : [...items, id]));
 
@@ -46,10 +58,14 @@ export function MediaBrowser() {
         </div>
       </div>
       {selected.length ? <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3"><p className="mr-auto text-sm font-medium">{selected.length} files selected</p><Button size="sm" variant="destructive"><Trash2 className="size-4" />Delete selected</Button><Button size="sm" variant="outline"><Download className="size-4" />Download selected</Button></div> : null}
-      {view === "grid" ? (
-        <MediaGrid files={files} selected={selected} onToggle={toggle} onOpen={setActiveFile} />
+      {isLoading ? (
+        <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">
+          Loading files...
+        </div>
+      ) : view === "grid" ? (
+        <MediaGrid files={files} selected={selected} onToggle={toggle} onOpen={setActiveFile} onDelete={(file) => deleteFile.mutate({ path: file.name })} />
       ) : (
-        <div className="rounded-lg border bg-card"><Table><TableHeader><TableRow><TableHead className="w-10" /><TableHead>Filename</TableHead><TableHead>Size</TableHead><TableHead>Board</TableHead><TableHead>Subject</TableHead><TableHead>Year</TableHead><TableHead>Uploaded</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{files.map((file) => <MediaListItem key={file.id} file={file} selected={selected.includes(file.id)} onToggle={() => toggle(file.id)} onOpen={() => setActiveFile(file)} />)}</TableBody></Table></div>
+        <div className="rounded-lg border bg-card"><Table><TableHeader><TableRow><TableHead className="w-10" /><TableHead>Filename</TableHead><TableHead>Size</TableHead><TableHead>Board</TableHead><TableHead>Subject</TableHead><TableHead>Year</TableHead><TableHead>Uploaded</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{files.map((file) => <MediaListItem key={file.id} file={file} selected={selected.includes(file.id)} onToggle={() => toggle(file.id)} onOpen={() => setActiveFile(file)} onDelete={() => deleteFile.mutate({ path: file.name })} />)}</TableBody></Table></div>
       )}
       <FileDetailPanel file={activeFile} onOpenChange={(open) => !open && setActiveFile(null)} />
     </div>

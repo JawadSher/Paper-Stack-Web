@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Upload } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,10 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PaperCard } from "@/components/shared/PaperCard";
-import { boards } from "@/constants/boards";
-import { subjects } from "@/constants/subjects";
+import { useCreatePaper } from "@/hooks/admin/mutations/useCreatePaper";
+import { useUploadPaperFile } from "@/hooks/admin/mutations/useUploadPaperFile";
+import { useGetBoards } from "@/hooks/public/queries/useGetBoards";
+import { useGetAllSubjects } from "@/hooks/public/queries/useGetAllSubjects";
 import { cn } from "@/lib/utils";
-import type { ClassLevel, Paper } from "@/types";
+import type { Board, ClassLevel, Paper, Subject } from "@/types";
 
 const maxFileSize = 50 * 1024 * 1024;
 const years = [2024, 2023, 2022, 2021, 2020, 2019];
@@ -53,15 +55,20 @@ function readableSize(bytes: number) {
 }
 
 export function UploadPaperForm() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
   const [titleEdited, setTitleEdited] = useState(false);
+  const { data: boards = [] } = useGetBoards();
+  const { data: subjects = [] } = useGetAllSubjects();
+  const createPaper = useCreatePaper();
+  const uploadFile = useUploadPaperFile();
   const form = useForm<UploadPaperValues>({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
       boardId: boards[0]?.id ?? "",
       classLevel: 10,
-      subjectId: subjects.find((subject) => subject.classLevel === 10)?.id ?? "",
+      subjectId: subjects[0]?.id ?? "",
       year: 2024,
       session: "annual",
       title: "",
@@ -70,13 +77,42 @@ export function UploadPaperForm() {
   });
 
   const values = form.watch();
-  const selectedBoard = boards.find((board) => board.id === values.boardId) ?? boards[0];
+  const selectedBoardData = boards.find((board) => board.id === values.boardId) ?? boards[0];
   const classSubjects = useMemo(
-    () => subjects.filter((subject) => subject.classLevel === values.classLevel),
-    [values.classLevel],
+    () => subjects,
+    [subjects],
   );
-  const selectedSubject =
+  const selectedSubjectData =
     subjects.find((subject) => subject.id === values.subjectId) ?? classSubjects[0];
+  const selectedBoard = useMemo<Board | undefined>(
+    () =>
+      selectedBoardData
+        ? {
+            id: selectedBoardData.id,
+            name: selectedBoardData.name,
+            shortName: selectedBoardData.shortName,
+            description: selectedBoardData.description ?? "",
+            province:
+              selectedBoardData.province === "Gilgit_Baltistan"
+                ? "Gilgit-Baltistan"
+                : (selectedBoardData.province as Board["province"]),
+            classes: [9, 10, 11, 12],
+            color: selectedBoardData.color,
+          }
+        : undefined,
+    [selectedBoardData],
+  );
+  const selectedSubject = useMemo<Subject | undefined>(
+    () =>
+      selectedSubjectData
+        ? {
+            id: selectedSubjectData.id,
+            name: selectedSubjectData.name,
+            classLevel: values.classLevel,
+          }
+        : undefined,
+    [selectedSubjectData, values.classLevel],
+  );
   const selectedFile = values.file;
 
   useEffect(() => {
@@ -97,12 +133,28 @@ export function UploadPaperForm() {
 
   async function onSubmit(data: UploadPaperValues) {
     setProgress(15);
-    await new Promise((resolve) => window.setTimeout(resolve, 350));
-    setProgress(65);
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
-    setProgress(100);
-    console.log("Upload paper", data);
-    toast.success("Paper upload simulated");
+    const created = await createPaper.mutateAsync({
+      boardId: data.boardId,
+      subjectId: data.subjectId,
+      classLevel: data.classLevel,
+      year: data.year,
+      session: data.session,
+      title: data.title,
+      status: data.status === "live" ? "LIVE" : "DRAFT",
+    });
+    if (!created.success) return;
+
+    setProgress(55);
+    const formData = new FormData();
+    formData.set("file", data.file);
+    const uploaded = await uploadFile.mutateAsync({
+      paperId: created.data.id,
+      formData,
+    });
+    if (uploaded.success) {
+      setProgress(100);
+      router.push("/papers");
+    }
   }
 
   function setFile(file?: File) {
@@ -123,6 +175,8 @@ export function UploadPaperForm() {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
+  const isPending = createPaper.isPending || uploadFile.isPending;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,0.6fr)_minmax(320px,0.4fr)]">
@@ -277,8 +331,8 @@ export function UploadPaperForm() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button type="submit" className="bg-ps-coral hover:bg-ps-coral/90" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+          <Button type="submit" className="bg-ps-coral hover:bg-ps-coral/90" disabled={form.formState.isSubmitting || isPending}>
+            {form.formState.isSubmitting || uploadFile.isPending || createPaper.isPending ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
             Upload paper
           </Button>
           <Button type="button" variant="ghost">

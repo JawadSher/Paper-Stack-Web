@@ -12,9 +12,10 @@ export type MediaListItemProps = {
   selected: boolean;
   onToggle: () => void;
   onOpen: () => void;
+  onDelete: () => void;
 };
 
-export function MediaListItem({ file, selected, onToggle, onOpen }: MediaListItemProps) {
+export function MediaListItem({ file, selected, onToggle, onOpen, onDelete }: MediaListItemProps) {
   const meta = mediaMeta(file);
   return (
     <TableRow>
@@ -29,7 +30,7 @@ export function MediaListItem({ file, selected, onToggle, onOpen }: MediaListIte
         <div className="flex justify-end gap-1">
           <Button type="button" size="icon-sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(file.url); toast.success("URL copied"); }}><Copy className="size-4" /></Button>
           <Button type="button" size="icon-sm" variant="ghost" onClick={onOpen}><Eye className="size-4" /></Button>
-          <Button type="button" size="icon-sm" variant="ghost"><Trash2 className="size-4" /></Button>
+          <Button type="button" size="icon-sm" variant="ghost" onClick={onDelete}><Trash2 className="size-4" /></Button>
         </div>
       </TableCell>
     </TableRow>

@@ -1,32 +1,66 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
+import { useParams } from "next/navigation";
 import { PaperViewerClient } from "@/components/public/viewer/PaperViewerClient";
-import { boards } from "@/constants/boards";
-import { mockPapers } from "@/constants/papers";
-import { subjects } from "@/constants/subjects";
+import { SkeletonCard } from "@/components/shared/SkeletonCard";
+import { useTrackView } from "@/hooks/public/mutations/useTrackView";
+import { useGetPaperById } from "@/hooks/public/queries/useGetPaperById";
+import type { Board, ClassLevel, Paper, Subject } from "@/types";
 
-export type PaperViewerPageProps = {
-  params: Promise<{ paperId: string }>;
-};
+export default function PaperViewerPage() {
+  const params = useParams<{ paperId: string }>();
+  const paperId = params.paperId;
+  const { data, isLoading } = useGetPaperById(paperId);
+  const trackView = useTrackView();
 
-export default async function PaperViewerPage({ params }: PaperViewerPageProps) {
-  const { paperId } = await params;
-  const paper = mockPapers.find((item) => item.id === paperId);
-  if (!paper) notFound();
+  useEffect(() => {
+    if (!paperId) return;
+    trackView.mutate({ paperId, platform: "web" });
+    // Track once on mount for this paper id.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paperId]);
 
-  const board = boards.find((item) => item.id === paper.boardId);
-  const subject = subjects.find((item) => item.id === paper.subjectId);
-  if (!board || !subject) notFound();
+  if (isLoading) return <SkeletonCard />;
+  if (!data) return <p className="p-6 text-sm text-muted-foreground">Paper not found.</p>;
 
-  const relatedPapers = mockPapers
-    .filter((item) => item.id !== paper.id && item.boardId === board.id && item.subjectId === subject.id)
-    .slice(0, 3);
+  const board: Board = {
+    id: data.board.id,
+    name: data.board.name,
+    shortName: data.board.shortName,
+    description: "",
+    province:
+      data.board.province === "Gilgit_Baltistan"
+        ? "Gilgit-Baltistan"
+        : data.board.province,
+    classes: [9, 10, 11, 12],
+    color: data.board.color,
+  };
+  const subject: Subject = {
+    id: data.subject.id,
+    name: data.subject.name,
+    classLevel: data.classLevel as ClassLevel,
+  };
+  const paper: Paper = {
+    id: data.id,
+    title: data.title,
+    boardId: data.boardId,
+    subjectId: data.subjectId,
+    classLevel: data.classLevel as ClassLevel,
+    year: data.year,
+    session: data.session,
+    pdfUrl: data.pdfUrl ?? "#",
+    fileSizeBytes: data.fileSizeBytes ? Number(data.fileSizeBytes) : undefined,
+    createdAt: data.createdAt.toISOString(),
+    updatedAt: data.updatedAt.toISOString(),
+  };
 
   return (
     <PaperViewerClient
       paper={paper}
       board={board}
       subject={subject}
-      relatedPapers={relatedPapers}
+      relatedPapers={[]}
     />
   );
 }

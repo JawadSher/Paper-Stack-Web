@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AdminBoard } from "./types";
@@ -10,9 +9,10 @@ import type { AdminBoard } from "./types";
 export type BoardCardProps = {
   board: AdminBoard;
   paperCount: number;
+  onDelete?: () => void;
 };
 
-export function BoardCard({ board, paperCount }: BoardCardProps) {
+export function BoardCard({ board, paperCount, onDelete }: BoardCardProps) {
   return (
     <article
       className="rounded-lg border bg-card p-5"
@@ -38,7 +38,7 @@ export function BoardCard({ board, paperCount }: BoardCardProps) {
           type="button"
           size="sm"
           variant={board.status === "active" ? "default" : "outline"}
-          onClick={() => toast.success(`${board.shortName} status toggle simulated`)}
+          disabled
         >
           {board.status === "active" ? "Active" : "Inactive"}
         </Button>
@@ -53,7 +53,7 @@ export function BoardCard({ board, paperCount }: BoardCardProps) {
             size="icon-sm"
             variant="ghost"
             aria-label={`Delete ${board.shortName}`}
-            onClick={() => toast.success("Board delete queued")}
+            onClick={onDelete}
           >
             <Trash2 className="size-4" />
           </Button>

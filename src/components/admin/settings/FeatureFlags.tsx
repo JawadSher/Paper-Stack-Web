@@ -1,26 +1,40 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { useUpdateFeatureFlag } from "@/hooks/admin/mutations/useUpdateFeatureFlag";
 
 const features = [
-  ["Common questions", "Show the common questions feature across all subjects"],
-  ["PDF downloads", "Allow users to download PDFs"],
-  ["Web PDF viewer", "Show embedded PDF viewer on web (disable to save bandwidth)"],
-  ["Search", "Enable global search"],
-  ["New papers notification", "Send push notifications when new papers are added"],
+  ["commonQuestions", "Common questions", "Show the common questions feature across all subjects"],
+  ["pdfDownloads", "PDF downloads", "Allow users to download PDFs"],
+  ["webPdfViewer", "Web PDF viewer", "Show embedded PDF viewer on web (disable to save bandwidth)"],
+  ["search", "Search", "Enable global search"],
+  ["newPapersNotification", "New papers notification", "Send push notifications when new papers are added"],
 ] as const;
 
-export function FeatureFlags() {
-  const [disabled, setDisabled] = useState<string[]>([]);
+export function FeatureFlags({
+  flags,
+  updateFlag,
+}: {
+  flags?: Record<string, boolean>;
+  updateFlag: ReturnType<typeof useUpdateFeatureFlag>;
+}) {
   return (
     <div className="space-y-3">
-      {features.map(([name, description]) => {
-        const on = !disabled.includes(name);
+      {features.map(([flagName, name, description]) => {
+        const on = flags?.[flagName] ?? false;
         return (
           <div key={name} className="flex flex-col gap-3 rounded-lg border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="font-medium">{name}</p><p className="text-sm text-muted-foreground">{description}</p><p className="mt-1 text-xs text-muted-foreground">Last changed just now</p></div>
-            <Button type="button" variant={on ? "default" : "outline"} onClick={() => setDisabled((items) => on ? [...items, name] : items.filter((item) => item !== name))}>{on ? "ON" : "OFF"}</Button>
+            <Button
+              type="button"
+              variant={on ? "default" : "outline"}
+              disabled={updateFlag.isPending}
+              onClick={() =>
+                updateFlag.mutate({ flagName, isEnabled: !on })
+              }
+            >
+              {on ? "ON" : "OFF"}
+            </Button>
           </div>
         );
       })}

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PdfPreviewPane } from "@/components/shared/PdfPreviewPane";
 import { PaperListRow } from "@/components/public/browse/PaperListRow";
 import { PdfPlaceholder } from "@/components/public/viewer/PdfPlaceholder";
+import { useTrackView } from "@/hooks/public/mutations/useTrackView";
 import { cn } from "@/lib/utils";
 import type { Board, ClassLevel, Paper, Subject } from "@/types";
 
@@ -29,6 +30,7 @@ export function PaperListClient({
   const [year, setYear] = useState<(typeof years)[number]>("all");
   const [session, setSession] = useState<(typeof sessions)[number]>("all");
   const [selectedPaperId, setSelectedPaperId] = useState<string>();
+  const trackView = useTrackView();
 
   const filteredPapers = useMemo(
     () =>
@@ -86,7 +88,10 @@ export function PaperListClient({
                 <PaperListRow
                   paper={paper}
                   selected={paper.id === selectedPaper?.id}
-                  onSelect={() => setSelectedPaperId(paper.id)}
+                  onSelect={() => {
+                    setSelectedPaperId(paper.id);
+                    trackView.mutate({ paperId: paper.id, platform: "web" });
+                  }}
                 />
               </div>
               <Link

@@ -98,3 +98,19 @@ export interface SubjectForm {
   name: string;
   classLevel: ClassLevel;
 }
+
+export * from "./action-types";
+export * from "./query-keys";
+
+export type {
+  AdminAuditLog,
+  AppSetting,
+  Board as PrismaBoard,
+  CommonQuestion,
+  FeatureFlag,
+  Paper as PrismaPaper,
+  PaperStatus,
+  Province,
+  Session,
+  Subject as PrismaSubject,
+} from "@prisma/client";

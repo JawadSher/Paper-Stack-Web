@@ -14,9 +14,8 @@ import { FilterSidebar, type PaperFilters } from "@/components/shared/FilterSide
 import { PaperCard } from "@/components/shared/PaperCard";
 import { SearchBar } from "@/components/shared/SearchBar";
 import { boards } from "@/constants/boards";
-import { mockPapers } from "@/constants/papers";
-import { subjects } from "@/constants/subjects";
-import type { Paper } from "@/types";
+import { useSearchPapers } from "@/hooks/public/queries/useSearchPapers";
+import type { Board, Paper } from "@/types";
 import { SearchEmpty } from "./SearchEmpty";
 
 export type SearchClientProps = Record<string, never>;
@@ -38,6 +37,12 @@ export function SearchClient({}: SearchClientProps) {
   const [sort, setSort] = useState<SortValue>("newest");
   const [visibleCount, setVisibleCount] = useState(24);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const { data: results, isLoading } = useSearchPapers(query, {
+    boardId: filters.boardIds[0],
+    classLevel: filters.classLevels[0],
+    year: filters.years[0],
+    session: filters.sessions[0],
+  });
 
   useEffect(() => {
     const stored = window.localStorage.getItem("paperstack:recent-searches");
@@ -65,50 +70,56 @@ export function SearchClient({}: SearchClientProps) {
   }, []);
 
   const filteredPapers = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    const result = mockPapers.filter((paper) => {
-      const board = boards.find((item) => item.id === paper.boardId);
-      const subject = subjects.find((item) => item.id === paper.subjectId);
-      const searchable = [
-        paper.title,
-        paper.year,
-        paper.classLevel,
-        paper.session,
-        board?.name,
-        board?.shortName,
-        subject?.name,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return (
-        (!normalized || searchable.includes(normalized)) &&
-        (!filters.boardIds.length || filters.boardIds.includes(paper.boardId)) &&
-        (!filters.classLevels.length ||
-          filters.classLevels.includes(paper.classLevel)) &&
-        (!filters.years.length || filters.years.includes(paper.year)) &&
-        (!filters.sessions.length ||
-          (paper.session ? filters.sessions.includes(paper.session) : false))
-      );
-    });
+    const result =
+      results?.data.map((paper) => ({
+        paper: {
+          id: paper.id,
+          title: paper.title,
+          boardId: paper.boardId,
+          subjectId: paper.subjectId,
+          classLevel: paper.classLevel as Paper["classLevel"],
+          year: paper.year,
+          session: paper.session,
+          pdfUrl: paper.pdfUrl ?? "#",
+          fileSizeBytes: paper.fileSizeBytes
+            ? Number(paper.fileSizeBytes)
+            : undefined,
+          createdAt: paper.createdAt.toISOString(),
+          updatedAt: paper.updatedAt.toISOString(),
+        },
+        board: {
+          id: paper.board.id,
+          name: paper.board.name,
+          shortName: paper.board.shortName,
+          description: "",
+          province:
+            paper.board.province === "Gilgit_Baltistan"
+              ? "Gilgit-Baltistan"
+              : paper.board.province,
+          classes: [9, 10, 11, 12] as Paper["classLevel"][],
+          color: paper.board.color,
+        } satisfies Board,
+        subject: {
+          id: paper.subject.id,
+          name: paper.subject.name,
+          classLevel: paper.classLevel as Paper["classLevel"],
+        },
+      })) ?? [];
 
     return result.sort((a, b) => {
-      if (sort === "oldest") return a.year - b.year;
+      if (sort === "oldest") return a.paper.year - b.paper.year;
       if (sort === "board") {
-        const aBoard = boards.find((board) => board.id === a.boardId)?.shortName ?? "";
-        const bBoard = boards.find((board) => board.id === b.boardId)?.shortName ?? "";
-        return aBoard.localeCompare(bBoard);
+        return a.board.shortName.localeCompare(b.board.shortName);
       }
-      return b.year - a.year;
+      return b.paper.year - a.paper.year;
     });
-  }, [filters, query, sort]);
+  }, [results, sort]);
 
   const grouped = useMemo(() => {
-    return filteredPapers.slice(0, visibleCount).reduce<Record<string, Paper[]>>(
-      (groups, paper) => {
-        const subject = subjects.find((item) => item.id === paper.subjectId);
-        const key = subject?.name ?? "Other";
-        groups[key] = [...(groups[key] ?? []), paper];
+    return filteredPapers.slice(0, visibleCount).reduce<Record<string, typeof filteredPapers>>(
+      (groups, item) => {
+        const key = item.subject.name;
+        groups[key] = [...(groups[key] ?? []), item];
         return groups;
       },
       {},
@@ -157,16 +168,15 @@ export function SearchClient({}: SearchClientProps) {
             </Select>
           </div>
 
-          {filteredPapers.length ? (
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Searching...</p>
+          ) : filteredPapers.length ? (
             <div className="space-y-8">
-              {Object.entries(grouped).map(([subjectName, papers]) => (
+              {Object.entries(grouped).map(([subjectName, items]) => (
                 <section key={subjectName} className="space-y-3">
                   <h2 className="text-lg font-semibold">{subjectName}</h2>
                   <div className="grid gap-4 xl:grid-cols-2">
-                    {papers.map((paper) => {
-                      const board = boards.find((item) => item.id === paper.boardId);
-                      const subject = subjects.find((item) => item.id === paper.subjectId);
-                      if (!board) return null;
+                    {items.map(({ paper, board, subject }) => {
                       return (
                         <PaperCard
                           key={paper.id}

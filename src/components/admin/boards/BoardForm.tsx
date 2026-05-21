@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 import {
   AlertDialog,
@@ -28,6 +29,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useCreateBoard } from "@/hooks/admin/mutations/useCreateBoard";
+import { useDeleteBoard } from "@/hooks/admin/mutations/useDeleteBoard";
+import { useUpdateBoard } from "@/hooks/admin/mutations/useUpdateBoard";
 import type { ClassLevel } from "@/types";
 import type { AdminBoard, BoardStatus } from "./types";
 
@@ -64,6 +68,10 @@ export type BoardFormProps = {
 };
 
 export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps) {
+  const router = useRouter();
+  const createBoard = useCreateBoard();
+  const updateBoard = useUpdateBoard();
+  const deleteBoard = useDeleteBoard();
   const form = useForm<BoardValues>({
     resolver: zodResolver(boardSchema),
     defaultValues: {
@@ -79,6 +87,22 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
   });
 
   const values = form.watch();
+  const isPending =
+    createBoard.isPending || updateBoard.isPending || deleteBoard.isPending;
+
+  useEffect(() => {
+    if (!initialBoard) return;
+    form.reset({
+      name: initialBoard.name,
+      shortName: initialBoard.shortName,
+      province: initialBoard.province,
+      websiteUrl: initialBoard.websiteUrl ?? "",
+      description: initialBoard.description ?? "",
+      classes: initialBoard.classes,
+      color: initialBoard.color,
+      status: initialBoard.status,
+    });
+  }, [form, initialBoard]);
 
   function toggleClass(classLevel: ClassLevel) {
     const next = values.classes.includes(classLevel)
@@ -87,9 +111,34 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
     form.setValue("classes", next, { shouldValidate: true });
   }
 
-  function onSubmit(data: BoardValues) {
-    console.log(`${mode} board`, data);
-    toast.success(mode === "create" ? "Board created" : "Board changes saved");
+  async function onSubmit(data: BoardValues) {
+    const province =
+      data.province === "Gilgit-Baltistan" ? "Gilgit_Baltistan" : data.province;
+    const payload = {
+      name: data.name,
+      shortName: data.shortName,
+      province,
+      description: data.description,
+      websiteUrl: data.websiteUrl || undefined,
+      color: data.color,
+      displayOrder: 0,
+    };
+
+    if (mode === "create") {
+      const result = await createBoard.mutateAsync(payload);
+      if (result.success) router.push("/boards");
+      return;
+    }
+
+    if (!initialBoard) return;
+    const result = await updateBoard.mutateAsync({
+      id: initialBoard.id,
+      data: {
+        ...payload,
+        isActive: data.status === "active",
+      },
+    });
+    if (result.success) router.push("/boards");
   }
 
   return (
@@ -172,7 +221,7 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
       </div>
       <div className="flex gap-3">
         <Button type="submit" className="bg-ps-coral hover:bg-ps-coral/90">
-          {mode === "create" ? "Create board" : "Save changes"}
+          {isPending ? "Saving..." : mode === "create" ? "Create board" : "Save changes"}
         </Button>
         <Button type="button" variant="ghost">
           <Link href="/boards">Cancel</Link>
@@ -193,7 +242,16 @@ export function BoardForm({ mode, initialBoard, paperCount = 0 }: BoardFormProps
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={() => toast.success("Board delete queued")}>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={async () => {
+                    if (!initialBoard) return;
+                    const result = await deleteBoard.mutateAsync({
+                      id: initialBoard.id,
+                    });
+                    if (result.success) router.push("/boards");
+                  }}
+                >
                   Delete board
                 </AlertDialogAction>
               </AlertDialogFooter>
