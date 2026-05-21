@@ -15,7 +15,7 @@ export function BoardCard({ board, paperCount }: BoardCardProps) {
       href={`/browse/${board.id}`}
       className={cn(
         "group block rounded-lg border bg-card p-5 transition-all hover:-translate-y-0.5",
-        "hover:[border-color:var(--board-color)]",
+        "hover:border-(--board-color)",
       )}
       style={{
         "--board-color": board.color,

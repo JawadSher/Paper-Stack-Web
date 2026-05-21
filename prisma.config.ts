@@ -7,12 +7,11 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
-    seed:
-      "node ./node_modules/ts-node/dist/bin.js --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
+    seed: 'node ./node_modules/ts-node/dist/bin.js --compiler-options {"module":"CommonJS"} prisma/seed.ts',
   },
   datasource: {
     // Prisma CLI/migrations should use the direct Supabase connection.
     url: process.env["DATABASE_URL"],
-    shadowDatabaseUrl: process.env["DIRECT_URL"]
+    shadowDatabaseUrl: process.env["DIRECT_URL"],
   },
 });

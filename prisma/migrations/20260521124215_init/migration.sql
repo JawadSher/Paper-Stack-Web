@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "Province" AS ENUM ('Federal', 'Punjab', 'Sindh', 'KPK', 'Balochistan', 'AJK', 'Gilgit-Baltistan');
 
@@ -31,7 +28,7 @@ CREATE TABLE "boards" (
     "description" TEXT,
     "website_url" TEXT,
     "color" TEXT NOT NULL DEFAULT '#CF6679',
-    "display_order" INTEGER NOT NULL DEFAULT 0,
+    "display_order" SERIAL NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -44,7 +41,7 @@ CREATE TABLE "subjects" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "icon" TEXT NOT NULL DEFAULT 'book-open',
-    "display_order" INTEGER NOT NULL DEFAULT 0,
+    "display_order" SERIAL NOT NULL,
     "is_compulsory" BOOLEAN NOT NULL DEFAULT false,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
