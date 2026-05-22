@@ -33,7 +33,7 @@ export default function PaperViewerPage() {
       data.board.province === "Gilgit_Baltistan"
         ? "Gilgit-Baltistan"
         : data.board.province,
-    classes: [9, 10, 11, 12],
+    classes: data.board.classes as ClassLevel[],
     color: data.board.color,
   };
   const subject: Subject = {

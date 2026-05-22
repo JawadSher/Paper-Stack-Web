@@ -96,7 +96,7 @@ export function UploadPaperForm() {
               selectedBoardData.province === "Gilgit_Baltistan"
                 ? "Gilgit-Baltistan"
                 : (selectedBoardData.province as Board["province"]),
-            classes: [9, 10, 11, 12],
+            classes: selectedBoardData.classes as Board["classes"],
             color: selectedBoardData.color,
           }
         : undefined,

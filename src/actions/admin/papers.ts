@@ -24,6 +24,7 @@ const paperInclude = {
       name: true,
       shortName: true,
       province: true,
+      classes: true,
       color: true,
     },
   },

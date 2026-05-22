@@ -63,19 +63,16 @@ export async function getBoardById(
 }
 
 export type PublicBoardDetail = {
-  board: Pick<Board, "id" | "name" | "shortName" | "province" | "description" | "color">;
-  previewSubjects: Array<{
-    id: string;
-    name: string;
+  board: Pick<Board, "id" | "name" | "shortName" | "province" | "description" | "classes" | "color">;
+  classSummaries: Array<{
     classLevel: number;
+    subjectCount: number;
     paperCount: number;
   }>;
 };
 
 export async function getBoardDetailById(
   id: string,
-  previewClassLevel = 10,
-  previewLimit = 6,
 ): Promise<ActionResult<PublicBoardDetail | null>> {
   try {
     const board = await prisma.board.findFirst({
@@ -86,59 +83,45 @@ export async function getBoardDetailById(
         shortName: true,
         province: true,
         description: true,
+        classes: true,
         color: true,
-        boardClassSubjects: {
-          where: {
-            classLevel: previewClassLevel,
-            isActive: true,
-            subject: { isActive: true },
-          },
-          select: {
-            classLevel: true,
-            subject: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-          orderBy: [
-            { subject: { isCompulsory: "desc" } },
-            { subject: { displayOrder: "asc" } },
-          ],
-          take: previewLimit,
-        },
       },
     });
 
     if (!board) return ok(null);
 
-    const subjectIds = board.boardClassSubjects.map((row) => row.subject.id);
-    const paperCounts = subjectIds.length
-      ? await prisma.paper.groupBy({
-          by: ["subjectId"],
-          where: {
-            boardId: board.id,
-            classLevel: previewClassLevel,
-            subjectId: { in: subjectIds },
-            status: "LIVE",
-          },
-          _count: { _all: true },
-        })
-      : [];
-    const countBySubjectId = new Map(
-      paperCounts.map((row) => [row.subjectId, row._count._all]),
+    const [subjectCounts, paperCounts] = await Promise.all([
+      prisma.boardClassSubject.groupBy({
+        by: ["classLevel"],
+        where: {
+          boardId: board.id,
+          isActive: true,
+          subject: { isActive: true },
+        },
+        _count: { _all: true },
+        orderBy: { classLevel: "asc" },
+      }),
+      prisma.paper.groupBy({
+        by: ["classLevel"],
+        where: {
+          boardId: board.id,
+          status: "LIVE",
+        },
+        _count: { _all: true },
+      }),
+    ]);
+    const paperCountByClass = new Map(
+      paperCounts.map((row) => [row.classLevel, row._count._all]),
     );
 
-    const { boardClassSubjects, ...boardFields } = board;
-
     return ok({
-      board: boardFields,
-      previewSubjects: boardClassSubjects.map((row) => ({
-        id: row.subject.id,
-        name: row.subject.name,
-        classLevel: row.classLevel,
-        paperCount: countBySubjectId.get(row.subject.id) ?? 0,
+      board,
+      classSummaries: board.classes.map((classLevel) => ({
+        classLevel,
+        subjectCount:
+          subjectCounts.find((row) => row.classLevel === classLevel)?._count
+            ._all ?? 0,
+        paperCount: paperCountByClass.get(classLevel) ?? 0,
       })),
     });
   } catch (e) {

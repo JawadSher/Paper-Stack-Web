@@ -74,6 +74,7 @@ export async function createBoard(input: {
   province: string;
   description?: string;
   websiteUrl?: string;
+  classes: number[];
   color: string;
   displayOrder?: number;
 }): Promise<ActionResult<Board>> {
@@ -112,6 +113,7 @@ export async function updateBoard(
     province: string;
     description: string;
     websiteUrl: string;
+    classes: number[];
     color: string;
     displayOrder: number;
     isActive: boolean;

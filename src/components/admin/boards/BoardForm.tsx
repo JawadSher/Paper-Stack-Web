@@ -136,6 +136,7 @@ export function BoardForm({
       province,
       description: data.description,
       websiteUrl: data.websiteUrl || undefined,
+      classes: [...data.classes].sort((a, b) => a - b),
       color: data.color,
       displayOrder: 0,
     };

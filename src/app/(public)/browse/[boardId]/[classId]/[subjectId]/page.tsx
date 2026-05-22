@@ -32,7 +32,7 @@ export default function PaperListPage() {
           boardData.province === "Gilgit_Baltistan"
             ? "Gilgit-Baltistan"
             : boardData.province,
-        classes: [9, 10, 11, 12],
+        classes: boardData.classes as ClassLevel[],
         color: boardData.color,
       }
     : undefined;

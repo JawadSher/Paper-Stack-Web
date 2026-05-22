@@ -5,7 +5,7 @@ import { SearchBar } from "@/components/shared/SearchBar";
 import { BoardCard } from "@/components/public/browse/BoardCard";
 import { SkeletonCard } from "@/components/shared/SkeletonCard";
 import { useGetBoardsByProvince } from "@/hooks/public/queries/useGetBoardsByProvince";
-import type { Board } from "@/types";
+import type { Board, ClassLevel } from "@/types";
 
 export type BoardsBrowserProps = Record<string, never>;
 
@@ -29,7 +29,7 @@ export function BoardsBrowser({}: BoardsBrowserProps) {
               board.province === "Gilgit_Baltistan"
                 ? "Gilgit-Baltistan"
                 : board.province,
-            classes: [9, 10, 11, 12],
+            classes: board.classes as ClassLevel[],
             color: board.color,
           }))
           .filter((board) =>

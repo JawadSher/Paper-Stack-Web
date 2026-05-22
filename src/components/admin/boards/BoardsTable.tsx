@@ -37,6 +37,8 @@ export function BoardsTable({
   const from = boards.length ? (page - 1) * pageSize + 1 : 0;
   const to = Math.min(total, (page - 1) * pageSize + boards.length);
 
+  console.log(boards);
+
   return (
     <div className="overflow-hidden rounded-lg border bg-card">
       <Table className="min-w-[900px] table-fixed">

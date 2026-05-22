@@ -96,7 +96,7 @@ export function SearchClient({}: SearchClientProps) {
             paper.board.province === "Gilgit_Baltistan"
               ? "Gilgit-Baltistan"
               : paper.board.province,
-          classes: [9, 10, 11, 12] as Paper["classLevel"][],
+          classes: paper.board.classes as Paper["classLevel"][],
           color: paper.board.color,
         } satisfies Board,
         subject: {

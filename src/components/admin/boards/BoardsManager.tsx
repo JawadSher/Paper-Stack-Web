@@ -11,6 +11,7 @@ import { useDeleteBoard } from "@/hooks/admin/mutations/useDeleteBoard";
 import { useGetAdminBoards } from "@/hooks/admin/queries/useGetAdminBoards";
 import type { AdminBoardFilters } from "@/src/types/action-types";
 import { cn } from "@/lib/utils";
+import type { ClassLevel } from "@/types";
 import type { AdminBoard } from "./types";
 
 const provinceTabs = ["All", "Federal", "Punjab", "Sindh", "KPK", "Balochistan", "AJK", "GB"] as const;
@@ -22,7 +23,7 @@ function toAdminBoard(board: NonNullable<ReturnType<typeof useGetAdminBoards>["d
     shortName: board.shortName,
     description: board.description ?? "",
     province: board.province === "Gilgit_Baltistan" ? "Gilgit-Baltistan" : board.province,
-    classes: [9, 10, 11, 12],
+    classes: board.classes as ClassLevel[],
     color: board.color,
     websiteUrl: board.websiteUrl ?? "",
     status: board.isActive ? "active" : "inactive",
@@ -38,6 +39,7 @@ export function BoardsManager() {
     pageSize: 20,
   });
   const { data, isLoading } = useGetAdminBoards(filters);
+  console.log(data);
   const deleteBoard = useDeleteBoard();
 
   const filteredBoards = useMemo(

@@ -14,6 +14,7 @@ model Board {
   province     Province
   description  String?
   websiteUrl   String?  @map("website_url")
+  classes      Int[]    @default([9, 10, 11, 12])
   color        String   @default("#CF6679")
   displayOrder Int      @default(autoincrement()) @map("display_order") 
   isActive     Boolean  @default(true) @map("is_active")

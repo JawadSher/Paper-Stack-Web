@@ -80,7 +80,7 @@ export function fail(error: string): ActionResult<never> {
 }
 
 export type PaperWithRelations = Paper & {
-  board: Pick<Board, "id" | "name" | "shortName" | "province" | "color">;
+  board: Pick<Board, "id" | "name" | "shortName" | "province" | "classes" | "color">;
   subject: Pick<Subject, "id" | "name" | "icon">;
 };
 

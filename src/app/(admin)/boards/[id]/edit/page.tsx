@@ -6,6 +6,7 @@ import type { AdminBoard } from "@/components/admin/boards/types";
 import { SkeletonCard } from "@/components/shared/SkeletonCard";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { useGetAdminBoardById } from "@/hooks/admin/queries/useGetAdminBoardById";
+import type { ClassLevel } from "@/types";
 
 export default function EditBoardPage() {
   const params = useParams<{ id: string }>();
@@ -22,7 +23,7 @@ export default function EditBoardPage() {
           board.province === "Gilgit_Baltistan"
             ? "Gilgit-Baltistan"
             : board.province,
-        classes: [9, 10, 11, 12],
+        classes: board.classes as ClassLevel[],
         color: board.color,
         websiteUrl: board.websiteUrl ?? "",
         status: board.isActive ? "active" : "inactive",
