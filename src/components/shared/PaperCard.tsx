@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { Bookmark, Download, Eye } from "lucide-react";
@@ -38,11 +39,19 @@ export function PaperCard({
   return (
     <Card
       size={isCompact ? "sm" : "default"}
-      className="border border-transparent transition-colors hover:border-ps-coral/50"
+      className="border border-transparent transition-all hover:-translate-y-0.5 hover:border-(--paper-accent) hover:shadow-[0_14px_36px_var(--paper-accent-shadow)]"
+      style={
+        {
+          "--paper-accent": board.color,
+          "--paper-accent-soft": `color-mix(in srgb, ${board.color} 12%, transparent)`,
+          "--paper-accent-wash": `color-mix(in srgb, ${board.color} 7%, var(--card))`,
+          "--paper-accent-shadow": `color-mix(in srgb, ${board.color} 18%, transparent)`,
+        } as CSSProperties
+      }
     >
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary text-ps-coral">
+          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-(--paper-accent-soft) text-(--paper-accent)">
             <SubjectIcon subjectName={subjectName} size={21} />
           </div>
           <CardTitle>{subjectName}</CardTitle>
@@ -59,7 +68,7 @@ export function PaperCard({
             <Bookmark
               className={cn(
                 "size-4",
-                bookmarked && "fill-ps-coral text-ps-coral",
+                bookmarked && "fill-(--paper-accent) text-(--paper-accent)",
               )}
             />
           </Button>
@@ -69,7 +78,7 @@ export function PaperCard({
         <div className="flex flex-wrap items-center gap-2">
           <BoardBadge board={board} size={isCompact ? "sm" : "md"} />
           <YearBadge year={paper.year} />
-          <span className="rounded-4xl bg-secondary px-2 py-0.5 text-xs font-medium">
+          <span className="rounded-4xl bg-(--paper-accent-soft) px-2 py-0.5 text-xs font-medium text-(--paper-accent)">
             Class {paper.classLevel}
           </span>
           {paper.session ? <SessionBadge session={paper.session} /> : null}
@@ -82,12 +91,20 @@ export function PaperCard({
         <div className="flex flex-wrap gap-2">
           <Link
             href={`/paper/${paper.id}`}
-            className={buttonVariants({ size: "sm" })}
+            className={cn(
+              buttonVariants({ size: "sm" }),
+              "bg-(--paper-accent) text-white hover:bg-(--paper-accent)",
+            )}
           >
             <Eye className="size-4" />
             View PDF
           </Link>
-          <Button type="button" size="sm" variant="secondary">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="border-(--paper-accent) bg-(--paper-accent-soft) text-(--paper-accent) hover:bg-(--paper-accent-wash)"
+          >
             <Download className="size-4" />
             Download
           </Button>

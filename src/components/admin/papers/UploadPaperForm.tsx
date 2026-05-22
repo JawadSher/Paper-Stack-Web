@@ -116,8 +116,16 @@ export function UploadPaperForm() {
   const selectedFile = values.file;
 
   useEffect(() => {
+    if (!values.boardId && boards[0]) {
+      form.setValue("boardId", boards[0].id, { shouldValidate: true });
+    }
+  }, [boards, form, values.boardId]);
+
+  useEffect(() => {
     if (!classSubjects.some((subject) => subject.id === values.subjectId)) {
-      form.setValue("subjectId", classSubjects[0]?.id ?? "");
+      form.setValue("subjectId", classSubjects[0]?.id ?? "", {
+        shouldValidate: true,
+      });
     }
   }, [classSubjects, form, values.subjectId]);
 
@@ -228,7 +236,7 @@ export function UploadPaperForm() {
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {boards.map((board) => (
-                      <SelectItem key={board.id} value={board.shortName}>{board.shortName}</SelectItem>
+                      <SelectItem key={board.id} value={board.id}>{board.shortName}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
