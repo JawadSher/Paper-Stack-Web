@@ -61,3 +61,87 @@ export async function getBoardById(
     return fail(`Failed to fetch board: ${e}`);
   }
 }
+
+export type PublicBoardDetail = {
+  board: Pick<Board, "id" | "name" | "shortName" | "province" | "description" | "color">;
+  previewSubjects: Array<{
+    id: string;
+    name: string;
+    classLevel: number;
+    paperCount: number;
+  }>;
+};
+
+export async function getBoardDetailById(
+  id: string,
+  previewClassLevel = 10,
+  previewLimit = 6,
+): Promise<ActionResult<PublicBoardDetail | null>> {
+  try {
+    const board = await prisma.board.findFirst({
+      where: { id, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        shortName: true,
+        province: true,
+        description: true,
+        color: true,
+        boardClassSubjects: {
+          where: {
+            classLevel: previewClassLevel,
+            isActive: true,
+            subject: { isActive: true },
+          },
+          select: {
+            classLevel: true,
+            subject: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: [
+            { subject: { isCompulsory: "desc" } },
+            { subject: { displayOrder: "asc" } },
+          ],
+          take: previewLimit,
+        },
+      },
+    });
+
+    if (!board) return ok(null);
+
+    const subjectIds = board.boardClassSubjects.map((row) => row.subject.id);
+    const paperCounts = subjectIds.length
+      ? await prisma.paper.groupBy({
+          by: ["subjectId"],
+          where: {
+            boardId: board.id,
+            classLevel: previewClassLevel,
+            subjectId: { in: subjectIds },
+            status: "LIVE",
+          },
+          _count: { _all: true },
+        })
+      : [];
+    const countBySubjectId = new Map(
+      paperCounts.map((row) => [row.subjectId, row._count._all]),
+    );
+
+    const { boardClassSubjects, ...boardFields } = board;
+
+    return ok({
+      board: boardFields,
+      previewSubjects: boardClassSubjects.map((row) => ({
+        id: row.subject.id,
+        name: row.subject.name,
+        classLevel: row.classLevel,
+        paperCount: countBySubjectId.get(row.subject.id) ?? 0,
+      })),
+    });
+  } catch (e) {
+    return fail(`Failed to fetch board detail: ${e}`);
+  }
+}
