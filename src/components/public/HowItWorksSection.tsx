@@ -75,9 +75,6 @@ export function HowItWorksSection({}: HowItWorksSectionProps) {
                   </span>
 
                   <div className="relative flex items-center gap-4">
-                    <span className="grid size-12 place-items-center rounded-full bg-white text-sm font-bold text-[#1A1917] shadow-[0_0_0_6px_rgba(207,102,121,0.12),0_10px_30px_rgba(0,0,0,0.24)] ring-1 ring-[#CF6679]/45">
-                      {index + 1}
-                    </span>
                     <div className="grid size-14 place-items-center rounded-2xl bg-[#CF6679]/16 text-[#F28A6C] shadow-inner transition-transform duration-300 group-hover:scale-110">
                       <Icon className="size-6" />
                     </div>
