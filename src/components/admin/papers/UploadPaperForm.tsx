@@ -233,7 +233,11 @@ export function UploadPaperForm() {
               name="boardId"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {selectedBoardData?.shortName ?? "Select board"}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {boards.map((board) => (
                       <SelectItem key={board.id} value={board.id}>{board.shortName}</SelectItem>
@@ -265,7 +269,11 @@ export function UploadPaperForm() {
               name="subjectId"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {selectedSubjectData?.name ?? "Select subject"}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {classSubjects.map((subject) => (
                       <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
