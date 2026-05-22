@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { TypeAnimation } from "react-type-animation";
 import {
   ArrowRight,
   BookOpen,
@@ -15,16 +16,20 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { TypewriterEffect } from "@/components/ui/typewriter-effect";
 import { PaperStackLogo } from "@/components/shared/PaperStackLogo";
 import { cn } from "@/lib/utils";
 
 export type HeroSectionProps = Record<string, never>;
 
-const headlineWords = [
-  { text: "Every" },
-  { text: "past" },
-  { text: "paper." },
+const headlineSequence = [
+  "Every past paper.\nOne place.",
+  1800,
+  "Class 9-12 papers.\nReady to browse.",
+  1800,
+  "Pakistan board papers.\nFast and simple.",
+  1800,
+  "Past papers, sorted.\nStudy smarter.",
+  1800,
 ];
 
 const trustBadges = [
@@ -173,17 +178,20 @@ export function HeroSection({}: HeroSectionProps) {
               </motion.div>
 
               <h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-tight text-white md:text-7xl">
-                <span className="block min-h-[1.05em] break-words">
+                <span className="block min-h-[2.1em] whitespace-pre-line break-words bg-gradient-to-br from-white via-[#F5C1CB] to-[#CF6679] bg-clip-text text-transparent drop-shadow-[0_18px_42px_rgba(207,102,121,0.16)]">
                   {shouldAnimate ? (
-                    <TypewriterEffect
-                      words={headlineWords}
-                      cursorClassName="h-[0.9em] translate-y-[0.12em] bg-white"
+                    <TypeAnimation
+                      sequence={headlineSequence}
+                      speed={48}
+                      deletionSpeed={62}
+                      repeat={Infinity}
+                      cursor
+                      className="inline-block"
                     />
                   ) : (
-                    "Every past paper."
+                    "Every past paper.\nOne place."
                   )}
                 </span>
-                <span className="block text-[#CF6679]">One place.</span>
               </h1>
 
               <motion.p

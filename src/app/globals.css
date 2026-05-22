@@ -335,15 +335,6 @@
   }
 }
 
-@keyframes ps-typewriter-reveal {
-  from {
-    max-width: 0;
-  }
-  to {
-    max-width: calc(var(--ps-type-chars) * 1ch);
-  }
-}
-
 @keyframes ps-badge-pop {
   0%,
   100% {
@@ -352,17 +343,6 @@
   45% {
     transform: scale(1.16);
   }
-}
-
-.ps-typewriter-line {
-  max-width: 0;
-  overflow: hidden;
-  border-right: 0.06em solid currentColor;
-  animation:
-    ps-typewriter-reveal 0.95s steps(var(--ps-type-chars)) var(--ps-type-delay)
-      forwards,
-    ps-type-caret 0.9s steps(1) infinite;
-  will-change: max-width;
 }
 
 .ps-shimmer {
