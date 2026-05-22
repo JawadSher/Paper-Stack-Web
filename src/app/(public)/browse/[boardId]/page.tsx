@@ -11,23 +11,33 @@ export type BoardDetailPageProps = {
   params: Promise<{ boardId: string }>;
 };
 
-export default async function BoardDetailPage({ params }: BoardDetailPageProps) {
+export default async function BoardDetailPage({
+  params,
+}: BoardDetailPageProps) {
   const { boardId } = await params;
-  const board = boards.find((item) => item.id === boardId);
-  if (!board){
-     notFound();
+  if (!boardId) {
+    notFound();
   }
+  const board = boards.find((item) => item.id === boardId)!;
 
-  const previewSubjects = subjects.filter((subject) => subject.classLevel === 10).slice(0, 6);
+  const previewSubjects = subjects
+    .filter((subject) => subject.classLevel === 10)
+    .slice(0, 6);
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         title={board.name}
         subtitle={board.description}
-        breadcrumbs={[{ label: "Browse", href: "/browse" }, { label: board.shortName, href: `/browse/${board.id}` }]}
+        breadcrumbs={[
+          { label: "Browse", href: "/browse" },
+          { label: board.shortName, href: `/browse/${board.id}` },
+        ]}
         actions={
-          <Badge className="border-transparent text-white" style={{ backgroundColor: board.color }}>
+          <Badge
+            className="border-transparent text-white"
+            style={{ backgroundColor: board.color }}
+          >
             {board.province}
           </Badge>
         }
@@ -42,7 +52,13 @@ export default async function BoardDetailPage({ params }: BoardDetailPageProps) 
                 key={subject.id}
                 boardId={board.id}
                 subject={subject}
-                paperCount={mockPapers.filter((paper) => paper.boardId === board.id && paper.subjectId === subject.id).length}
+                paperCount={
+                  mockPapers.filter(
+                    (paper) =>
+                      paper.boardId === board.id &&
+                      paper.subjectId === subject.id,
+                  ).length
+                }
               />
             ))}
           </div>

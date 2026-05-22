@@ -121,7 +121,7 @@ export function AdminSidebar({
 
       <div className="border-t p-3">
         {!collapsed ? (
-          <div className="rounded-xl border border-sidebar-border bg-sidebar-accent/55 p-3">
+          <div className="rounded-xl bg-background p-3">
             <div className="flex items-center gap-3">
               <UserButton />
               <div className="min-w-0">

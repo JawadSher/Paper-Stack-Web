@@ -17,7 +17,7 @@ export function AdminShell({ children }: AdminShellProps) {
         <AdminSidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
       </div>
       <div
-        className="flex min-h-screen min-w-0 flex-1 flex-col transition-[padding] duration-200 md:pl-[260px] data-[collapsed=true]:md:pl-[88px]"
+        className="flex min-h-screen min-w-0 flex-1 flex-col transition-[padding] duration-200 md:pl-65 data-[collapsed=true]:md:pl-22"
         data-collapsed={collapsed}
       >
         <AdminTopBar collapsed={collapsed} />

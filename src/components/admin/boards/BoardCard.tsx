@@ -34,14 +34,9 @@ export function BoardCard({ board, paperCount, onDelete }: BoardCardProps) {
         <Badge variant="outline">{paperCount} papers</Badge>
       </div>
       <div className="mt-5 flex items-center justify-between gap-3">
-        <Button
-          type="button"
-          size="sm"
-          variant={board.status === "active" ? "default" : "outline"}
-          disabled
-        >
+        <Badge variant={board.status === "active" ? "default" : "secondary"}>
           {board.status === "active" ? "Active" : "Inactive"}
-        </Button>
+        </Badge>
         <div className="flex gap-1">
           <Button type="button" size="icon-sm" variant="ghost" aria-label={`Edit ${board.shortName}`}>
             <Link href={`/boards/${board.id}/edit`}>

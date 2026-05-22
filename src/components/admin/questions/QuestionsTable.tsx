@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import { Download, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -70,7 +70,7 @@ export function QuestionsTable({ questions }: QuestionsTableProps) {
               const subject = subjects.find((item) => item.id === question.subjectId);
               const firstBoard = boards.find((board) => board.id === question.boardIds[0]);
               return (
-                <>
+                <Fragment key={question.id}>
                   <TableRow key={question.id} className="cursor-pointer" onClick={() => setExpandedId(expandedId === question.id ? undefined : question.id)}>
                     <TableCell onClick={(event) => event.stopPropagation()}>
                       <input type="checkbox" className="size-4 accent-ps-coral" checked={selected.includes(question.id)} onChange={() => toggle(question.id)} />
@@ -99,7 +99,7 @@ export function QuestionsTable({ questions }: QuestionsTableProps) {
                       </TableCell>
                     </TableRow>
                   ) : null}
-                </>
+                </Fragment>
               );
             })}
           </TableBody>
