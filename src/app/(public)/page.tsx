@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://paper-stack-web.vercel.app",
   ),
-  title: "PaperStack | Every Past Paper. One Place.",
+  title: "Paper Stack | Every Past Paper. One Place.",
   description:
     "Access 5 years of past papers from all Pakistan boards. Browse free and download offline in the PaperStack app.",
   openGraph: {

@@ -6,7 +6,7 @@ export type StatsStripProps = Record<string, never>;
 
 const stats = [
   { value: 1200, suffix: "+", label: "Papers" },
-  { value: 26, suffix: "", label: "Boards" },
+  { value: 35, suffix: "", label: "Boards" },
   { value: 44, suffix: "", label: "Subjects" },
   { value: 5, suffix: "", label: "Years" },
 ];

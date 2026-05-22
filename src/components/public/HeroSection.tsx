@@ -33,7 +33,7 @@ const headlineSequence = [
 ];
 
 const trustBadges = [
-  { label: "26+ Boards", color: "bg-[#CF6679]" },
+  { label: "34+ Boards", color: "bg-[#CF6679]" },
   { label: "5 Years of Papers", color: "bg-[#2DB896]" },
   { label: "Free Forever", color: "bg-[#7C6FF7]" },
 ];
