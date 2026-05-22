@@ -228,7 +228,7 @@ export function UploadPaperForm() {
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {boards.map((board) => (
-                      <SelectItem key={board.id} value={board.id}>{board.shortName}</SelectItem>
+                      <SelectItem key={board.id} value={board.shortName}>{board.shortName}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
