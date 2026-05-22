@@ -39,7 +39,6 @@ export function BoardsManager() {
     pageSize: 20,
   });
   const { data, isLoading } = useGetAdminBoards(filters);
-  console.log(data);
   const deleteBoard = useDeleteBoard();
 
   const filteredBoards = useMemo(
