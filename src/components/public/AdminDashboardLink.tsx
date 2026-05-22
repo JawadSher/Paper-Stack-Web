@@ -18,6 +18,7 @@ export function AdminDashboardLink({ mobile = false }: AdminDashboardLinkProps) 
   return (
     <Link
       href="/dashboard"
+      target="_blank"
       className={cn(
         buttonVariants({
           variant: mobile ? "secondary" : "outline",

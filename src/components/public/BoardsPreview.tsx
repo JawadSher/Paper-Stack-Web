@@ -1,17 +1,53 @@
 import Link from "next/link";
 import { ArrowRight, Building2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { boards } from "@/constants/boards";
 
-export type BoardsPreviewProps = Record<string, never>;
+export type BoardsPreviewBoard = {
+  id: string;
+  name: string;
+  shortName: string;
+  description: string | null;
+  province: string;
+  classes: number[];
+  color: string;
+};
+
+export type BoardsPreviewProps = {
+  boards: BoardsPreviewBoard[];
+};
 
 function hexToRgb(hex: string) {
   const normalized = hex.replace("#", "");
   const value = Number.parseInt(normalized, 16);
+  if (Number.isNaN(value)) {
+    return "207, 102, 121";
+  }
+
   return `${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}`;
 }
 
-export function BoardsPreview({}: BoardsPreviewProps) {
+function formatProvince(province: string) {
+  return province === "Gilgit_Baltistan"
+    ? "Gilgit-Baltistan"
+    : province.replaceAll("_", " ");
+}
+
+function formatClasses(classes: number[]) {
+  if (!classes.length) {
+    return "Classes";
+  }
+
+  const sortedClasses = [...classes].sort((a, b) => a - b);
+  return sortedClasses.length > 1
+    ? `${sortedClasses[0]}-${sortedClasses[sortedClasses.length - 1]}`
+    : `${sortedClasses[0]}`;
+}
+
+export function BoardsPreview({ boards }: BoardsPreviewProps) {
+  if (!boards.length) {
+    return null;
+  }
+
   const loopBoards = [...boards, ...boards];
 
   return (
@@ -44,14 +80,16 @@ export function BoardsPreview({}: BoardsPreviewProps) {
         </div>
 
         <div className="relative mt-14">
-          <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_1.5%,black_98.5%,transparent)]">
-            <div className="flex w-max gap-5 pb-8 pt-2 [animation:ps-scroll_90s_linear_infinite] hover:[animation-play-state:paused]">
+          <div className="overflow-hidden mask-[linear-gradient(to_right,transparent,black_1.5%,black_98.5%,transparent)]">
+            <div className="flex w-max gap-5 pb-8 pt-2 animate-[ps-scroll_90s_linear_infinite] hover:paused">
             {loopBoards.map((board, index) => {
               const rgb = hexToRgb(board.color);
+              const classesLabel = formatClasses(board.classes);
 
               return (
-                <article
+                <Link
                   key={`${board.id}-${index}`}
+                  href={`/browse/${board.id}`}
                   className="group relative min-h-[210px] w-[320px] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.055] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:border-white/20 hover:bg-white/[0.085]"
                   style={{
                     boxShadow: `0 -1px 24px rgba(${rgb}, 0.22), 0 18px 60px rgba(0,0,0,0.24)`,
@@ -78,7 +116,7 @@ export function BoardsPreview({}: BoardsPreviewProps) {
                         <Building2 className="size-5" />
                       </div>
                       <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-white/60">
-                        9-12
+                        {classesLabel}
                       </span>
                     </div>
 
@@ -90,17 +128,17 @@ export function BoardsPreview({}: BoardsPreviewProps) {
                       className="border-transparent text-white shadow-sm"
                       style={{ backgroundColor: board.color }}
                     >
-                      {board.province}
+                      {formatProvince(board.province)}
                     </Badge>
                     <Badge className="border-white/10 bg-white/10 text-white/72">
-                      Classes 9-12
+                      Classes {classesLabel}
                     </Badge>
                     </div>
                     <p className="mt-4 line-clamp-2 text-sm leading-6 text-white/58">
-                      {board.description}
+                      {board.description ?? board.name}
                     </p>
                   </div>
-                </article>
+                </Link>
               );
             })}
             </div>

@@ -7,6 +7,7 @@ import { HeroSection } from "@/components/public/HeroSection";
 import { HowItWorksSection } from "@/components/public/HowItWorksSection";
 import { ScrollProgress } from "@/components/public/ScrollProgress";
 import { StatsStrip } from "@/components/public/StatsStrip";
+import { getBoards } from "@/src/actions/public/boards";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -30,7 +31,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const boardsResult = await getBoards();
+  const boards = boardsResult.success ? boardsResult.data : [];
 
   return (
     <>
@@ -38,7 +41,7 @@ export default function LandingPage() {
       <HeroSection />
       <StatsStrip />
       <FeaturesSection />
-      <BoardsPreview />
+      <BoardsPreview boards={boards} />
       <CommonQuestionsTeaser />
       <HowItWorksSection />
       <AppDownloadSection />

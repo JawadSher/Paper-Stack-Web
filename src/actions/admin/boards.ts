@@ -96,6 +96,7 @@ export async function createBoard(input: {
       entityId: board.id,
       newValue: board,
     });
+    revalidatePath("/");
     revalidatePath("/boards");
     revalidatePath("/(admin)/boards");
 
