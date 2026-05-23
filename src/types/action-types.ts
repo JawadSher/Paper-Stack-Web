@@ -107,5 +107,6 @@ export type ChartDataPoint = {
 
 export type BoardChartData = {
   boardName: string;
+  boardShortName: string;
   paperCount: number;
 };

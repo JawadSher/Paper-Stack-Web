@@ -1,48 +1,225 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Session } from "@prisma/client";
+import { readFile, stat } from "node:fs/promises";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
 const prisma = new PrismaClient({ adapter });
+const papersBucket = "papers";
+const dummyPaperYears = [2022, 2023, 2024, 2025, 2026];
+const dummyPaperSession = Session.annual;
+const dummyPaperPath =
+  process.env.DUMMY_PAPER_PDF_PATH ??
+  "C:\\Users\\jawad\\OneDrive\\Desktop\\paper_stack_dummy_paper.pdf";
 
-async function seedBoardClassSubjects() {
-  console.log("Seeding board class subjects...");
+function getSeedPaperStoragePath({
+  province,
+  boardShortName,
+  classLevel,
+  subjectName,
+  year,
+  session,
+}: {
+  province: string;
+  boardShortName: string;
+  classLevel: number;
+  subjectName: string;
+  year: number;
+  session: string;
+}) {
+  const slug = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
 
-  const [boards, subjects] = await Promise.all([
-    prisma.board.findMany({
-      where: { isActive: true },
-      select: { id: true, classes: true },
-    }),
-    prisma.subject.findMany({
-      where: { isActive: true },
-      select: { id: true },
+  return [
+    slug(province),
+    slug(boardShortName),
+    classLevel.toString(),
+    slug(subjectName),
+    year.toString(),
+    `${session}.pdf`,
+  ].join("/");
+}
+
+// async function seedBoardClassSubjects() {
+//   console.log("Seeding board class subjects...");
+
+//   const [boards, subjects] = await Promise.all([
+//     prisma.board.findMany({
+//       where: { isActive: true },
+//       select: { id: true, classes: true },
+//     }),
+//     prisma.subject.findMany({
+//       where: { isActive: true },
+//       select: { id: true },
+//     }),
+//   ]);
+
+//   const rows = boards.flatMap((board) =>
+//     board.classes.flatMap((classLevel) =>
+//       subjects.map((subject) => ({
+//         boardId: board.id,
+//         subjectId: subject.id,
+//         classLevel,
+//         isActive: true,
+//       })),
+//     ),
+//   );
+
+//   if (!rows.length) {
+//     console.log("No active boards or subjects found for board_class_subjects.");
+//     return;
+//   }
+
+//   const result = await prisma.boardClassSubject.createMany({
+//     data: rows,
+//     skipDuplicates: true,
+//   });
+
+//   console.log(`Created ${result.count} board_class_subjects links.`);
+// }
+
+async function uploadDummyPaper(storagePath: string, pdfBuffer: Buffer) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+
+  const encodedPath = storagePath
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
+  const uploadUrl = `${supabaseUrl}/storage/v1/object/${papersBucket}/${encodedPath}`;
+  const response = await fetch(uploadUrl, {
+    method: "POST",
+    headers: {
+      apikey: serviceRoleKey,
+      authorization: `Bearer ${serviceRoleKey}`,
+      "content-type": "application/pdf",
+      "x-upsert": "true",
+    },
+    body: pdfBuffer as BodyInit,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to upload ${storagePath}: ${response.status} ${await response.text()}`,
+    );
+  }
+
+  return `${supabaseUrl}/storage/v1/object/public/${papersBucket}/${encodedPath}`;
+}
+
+async function seedDummyPapersForEveryBoardSubjectYear() {
+  console.log("Seeding dummy papers...");
+
+  const [pdfBuffer, pdfStats, rows] = await Promise.all([
+    readFile(dummyPaperPath),
+    stat(dummyPaperPath),
+    prisma.boardClassSubject.findMany({
+      where: {
+        isActive: true,
+        board: { isActive: true },
+        subject: { isActive: true },
+      },
+      include: {
+        board: true,
+        subject: true,
+      },
+      orderBy: [
+        { board: { displayOrder: "asc" } },
+        { classLevel: "asc" },
+        { subject: { displayOrder: "asc" } },
+      ],
     }),
   ]);
 
-  const rows = boards.flatMap((board) =>
-    board.classes.flatMap((classLevel) =>
-      subjects.map((subject) => ({
-        boardId: board.id,
-        subjectId: subject.id,
-        classLevel,
-        isActive: true,
-      })),
-    ),
-  );
-
   if (!rows.length) {
-    console.log("No active boards or subjects found for board_class_subjects.");
+    console.log("No board_class_subjects found. Run seedBoardClassSubjects first.");
     return;
   }
 
-  const result = await prisma.boardClassSubject.createMany({
-    data: rows,
-    skipDuplicates: true,
-  });
+  let created = 0;
+  let updated = 0;
 
-  console.log(`Created ${result.count} board_class_subjects links.`);
+  for (const row of rows) {
+    for (const year of dummyPaperYears) {
+      const storagePath = getSeedPaperStoragePath({
+        province: row.board.province,
+        boardShortName: row.board.shortName,
+        classLevel: row.classLevel,
+        subjectName: row.subject.name,
+        year,
+        session: dummyPaperSession,
+      });
+      const pdfUrl = await uploadDummyPaper(storagePath, pdfBuffer);
+      const title = `${row.subject.name} ${year} Annual Paper - ${row.board.shortName} Class ${row.classLevel}`;
+
+      const existing = await prisma.paper.findUnique({
+        where: {
+          boardId_subjectId_classLevel_year_session: {
+            boardId: row.boardId,
+            subjectId: row.subjectId,
+            classLevel: row.classLevel,
+            year,
+            session: dummyPaperSession,
+          },
+        },
+        select: { id: true },
+      });
+
+      await prisma.paper.upsert({
+        where: {
+          boardId_subjectId_classLevel_year_session: {
+            boardId: row.boardId,
+            subjectId: row.subjectId,
+            classLevel: row.classLevel,
+            year,
+            session: dummyPaperSession,
+          },
+        },
+        update: {
+          title,
+          storagePath,
+          pdfUrl,
+          fileSizeBytes: BigInt(pdfStats.size),
+          status: "LIVE",
+          publishedAt: new Date(),
+        },
+        create: {
+          boardId: row.boardId,
+          subjectId: row.subjectId,
+          classLevel: row.classLevel,
+          year,
+          session: dummyPaperSession,
+          title,
+          storagePath,
+          pdfUrl,
+          fileSizeBytes: BigInt(pdfStats.size),
+          status: "LIVE",
+          publishedAt: new Date(),
+        },
+      });
+
+      if (existing) {
+        updated += 1;
+      } else {
+        created += 1;
+      }
+    }
+  }
+
+  console.log(
+    `Dummy paper seed complete. Created ${created} papers, updated ${updated} papers.`,
+  );
 }
 
 async function main() {
@@ -460,7 +637,8 @@ async function main() {
   //   )
   // )
 
-  await seedBoardClassSubjects();
+  // await seedBoardClassSubjects();
+  await seedDummyPapersForEveryBoardSubjectYear();
 
   // console.log('Seeding feature flags...')
 

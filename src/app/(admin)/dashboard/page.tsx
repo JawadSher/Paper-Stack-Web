@@ -355,7 +355,8 @@ export default function DashboardPage() {
         ) : (
           <DashboardCharts
             boardData={(chartData?.boardData ?? []).map((item) => ({
-              board: item.boardName,
+              board: item.boardShortName,
+              boardName: item.boardName,
               papers: item.paperCount,
             }))}
             uploadData={(chartData?.viewsData ?? []).map((item) => ({

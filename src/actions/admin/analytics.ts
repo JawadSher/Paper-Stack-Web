@@ -126,13 +126,20 @@ export async function getChartData(range: DateRange): Promise<
 
     const boards = await prisma.board.findMany({
       where: { id: { in: paperCounts.map((row) => row.boardId) } },
-      select: { id: true, name: true },
+      select: { id: true, name: true, shortName: true },
     });
-    const boardNames = new Map(boards.map((board) => [board.id, board.name]));
-    const boardData = paperCounts.map((row) => ({
-      boardName: boardNames.get(row.boardId) ?? "Unknown",
-      paperCount: row._count.id,
-    }));
+    const boardsById = new Map(boards.map((board) => [board.id, board]));
+    const boardData = paperCounts
+      .map((row) => {
+        const board = boardsById.get(row.boardId);
+
+        return {
+          boardName: board?.name ?? "Unknown",
+          boardShortName: board?.shortName ?? "Unknown",
+          paperCount: row._count.id,
+        };
+      })
+      .sort((a, b) => b.paperCount - a.paperCount);
 
     return ok({
       viewsData: Array.from(chartMap.values()),
