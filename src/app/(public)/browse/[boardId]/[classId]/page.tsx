@@ -11,6 +11,7 @@ import { useGetSubjectsByBoardClass } from "@/hooks/public/queries/useGetSubject
 import type { Board, ClassLevel, Subject } from "@/types";
 
 const coreSubjects = new Set(["English", "Urdu", "Islamiat", "Pakistan Studies"]);
+type ClassSubject = Subject & { paperCount: number };
 
 export default function SubjectListPage() {
   const params = useParams<{ boardId: string; classId: string }>();
@@ -37,10 +38,11 @@ export default function SubjectListPage() {
 
   const classSubjects =
     subjects
-      ?.map<Subject>((subject) => ({
+      ?.map<ClassSubject>((subject) => ({
         id: subject.id,
         name: subject.name,
         classLevel,
+        paperCount: subject.paperCount,
       }))
       .sort(
         (a, b) =>
@@ -85,7 +87,7 @@ export default function SubjectListPage() {
                   boardId={boardId}
                   subject={subject}
                   isCore={coreSubjects.has(subject.name)}
-                  paperCount={0}
+                  paperCount={subject.paperCount}
                 />
               ))}
             </div>

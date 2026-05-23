@@ -40,6 +40,9 @@ const paperInclude = {
 function buildAdminPaperWhere(
   filters: AdminPaperFilters = {},
 ): Prisma.PaperWhereInput {
+  const search = filters.search?.trim();
+  const searchYear = search && /^\d{4}$/.test(search) ? Number(search) : undefined;
+
   return {
     ...(filters.boardId && { boardId: filters.boardId }),
     ...(filters.subjectId && { subjectId: filters.subjectId }),
@@ -47,6 +50,15 @@ function buildAdminPaperWhere(
     ...(filters.year && { year: filters.year }),
     ...(filters.session && { session: filters.session }),
     ...(filters.status && { status: filters.status }),
+    ...(search && {
+      OR: [
+        { title: { contains: search, mode: "insensitive" } },
+        { board: { name: { contains: search, mode: "insensitive" } } },
+        { board: { shortName: { contains: search, mode: "insensitive" } } },
+        { subject: { name: { contains: search, mode: "insensitive" } } },
+        ...(searchYear ? [{ year: searchYear }] : []),
+      ],
+    }),
   };
 }
 

@@ -12,6 +12,7 @@ export function useGetBoardsByProvince() {
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }

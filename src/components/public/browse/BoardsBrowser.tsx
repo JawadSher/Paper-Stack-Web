@@ -8,6 +8,7 @@ import { useGetBoardsByProvince } from "@/hooks/public/queries/useGetBoardsByPro
 import type { Board, ClassLevel } from "@/types";
 
 export type BoardsBrowserProps = Record<string, never>;
+type BrowseBoard = Board & { paperCount: number };
 
 export function BoardsBrowser({}: BoardsBrowserProps) {
   const [query, setQuery] = useState("");
@@ -20,7 +21,7 @@ export function BoardsBrowser({}: BoardsBrowserProps) {
       .map(([province, boards]) => [
         province,
         boards
-          .map<Board>((board) => ({
+          .map<BrowseBoard>((board) => ({
             id: board.id,
             name: board.name,
             shortName: board.shortName,
@@ -31,6 +32,7 @@ export function BoardsBrowser({}: BoardsBrowserProps) {
                 : board.province,
             classes: board.classes as ClassLevel[],
             color: board.color,
+            paperCount: board.paperCount,
           }))
           .filter((board) =>
             [board.name, board.shortName, board.province]
@@ -66,7 +68,7 @@ export function BoardsBrowser({}: BoardsBrowserProps) {
                 <BoardCard
                   key={board.id}
                   board={board}
-                  paperCount={0}
+                  paperCount={board.paperCount}
                 />
               ))}
             </div>

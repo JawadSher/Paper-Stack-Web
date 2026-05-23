@@ -30,6 +30,7 @@ export type PaperFilters = {
 export type AdminPaperFilters = PaperFilters & {
   page?: number;
   pageSize?: number;
+  search?: string;
   sortBy?: "createdAt" | "year" | "viewCount" | "downloadCount";
   sortOrder?: "asc" | "desc";
 };

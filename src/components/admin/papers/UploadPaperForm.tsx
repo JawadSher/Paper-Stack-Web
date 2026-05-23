@@ -4,13 +4,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Upload } from "lucide-react";
+import { Document, Page, pdfjs } from "react-pdf";
+import { FileText, Loader2, Upload } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -18,7 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PaperCard } from "@/components/shared/PaperCard";
+import { BoardBadge } from "@/components/shared/BoardBadge";
+import { SessionBadge } from "@/components/shared/SessionBadge";
+import { SubjectIcon } from "@/components/shared/SubjectIcon";
+import { YearBadge } from "@/components/shared/YearBadge";
 import { useCreatePaper } from "@/hooks/admin/mutations/useCreatePaper";
 import { useUploadPaperFile } from "@/hooks/admin/mutations/useUploadPaperFile";
 import { useGetBoards } from "@/hooks/public/queries/useGetBoards";
@@ -33,6 +38,11 @@ const sessions: Array<NonNullable<Paper["session"]>> = [
   "supplementary",
   "model",
 ];
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url,
+).toString();
 
 const uploadSchema = z.object({
   file: z
@@ -51,7 +61,19 @@ const uploadSchema = z.object({
 type UploadPaperValues = z.infer<typeof uploadSchema>;
 
 function readableSize(bytes: number) {
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes < 1024) return `${bytes.toLocaleString()} bytes`;
+
+  const units = ["KB", "MB", "GB"];
+  let value = bytes / 1024;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = value >= 10 ? 1 : 2;
+  return `${value.toFixed(precision)} ${units[unitIndex]} (${bytes.toLocaleString()} bytes)`;
 }
 
 export function UploadPaperForm() {
@@ -170,19 +192,6 @@ export function UploadPaperForm() {
       form.setValue("file", file, { shouldValidate: true });
     }
   }
-
-  const previewPaper: Paper = {
-    id: "preview",
-    title: values.title || "Paper preview",
-    boardId: values.boardId,
-    subjectId: values.subjectId,
-    classLevel: values.classLevel,
-    year: Number(values.year),
-    session: values.session,
-    pdfUrl: "#",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
 
   const isPending = createPaper.isPending || uploadFile.isPending;
 
@@ -359,10 +368,126 @@ export function UploadPaperForm() {
 
       <aside className="space-y-3">
         <h2 className="font-semibold">Preview</h2>
-        {selectedBoard && selectedSubject ? (
-          <PaperCard paper={previewPaper} board={selectedBoard} subject={selectedSubject} />
-        ) : null}
+        <UploadPreview
+          file={selectedFile}
+          title={values.title || "Paper preview"}
+          board={selectedBoard}
+          subjectName={selectedSubject?.name}
+          classLevel={values.classLevel}
+          year={values.year}
+          session={values.session}
+        />
       </aside>
+    </div>
+  );
+}
+
+function UploadPreview({
+  file,
+  title,
+  board,
+  subjectName,
+  classLevel,
+  year,
+  session,
+}: {
+  file?: File;
+  title: string;
+  board?: Board;
+  subjectName?: string;
+  classLevel: ClassLevel;
+  year: number;
+  session: NonNullable<Paper["session"]>;
+}) {
+  const [loadError, setLoadError] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>();
+  const accentColor = board?.color ?? "var(--ps-coral)";
+  const displaySubject = subjectName ?? title;
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(undefined);
+      setLoadError(false);
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    setLoadError(false);
+
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return (
+    <div
+      className="overflow-hidden rounded-lg border bg-card shadow-sm"
+      style={
+        {
+          "--upload-preview-accent": accentColor,
+          "--upload-preview-soft": `color-mix(in srgb, ${accentColor} 12%, transparent)`,
+          "--upload-preview-wash": `color-mix(in srgb, ${accentColor} 7%, var(--card))`,
+        } as React.CSSProperties
+      }
+    >
+      <div className="space-y-3 border-b p-4">
+        <div className="flex items-start gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-(--upload-preview-soft) text-(--upload-preview-accent)">
+            <SubjectIcon subjectName={displaySubject} size={21} />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate font-medium">{displaySubject}</p>
+            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{title}</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {board ? <BoardBadge board={board} size="md" /> : null}
+          <YearBadge year={year} />
+          <span className="rounded-4xl bg-(--upload-preview-soft) px-2 py-0.5 text-xs font-medium text-(--upload-preview-accent)">
+            Class {classLevel}
+          </span>
+          <SessionBadge session={session} />
+        </div>
+        {file ? (
+          <p className="truncate text-sm text-muted-foreground">
+            {file.name} - {readableSize(file.size)}
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Add a PDF to see a short document preview here.
+          </p>
+        )}
+      </div>
+
+      <div className="grid min-h-[420px] place-items-center bg-background p-4">
+        {previewUrl ? (
+          loadError ? (
+            <div className="max-w-64 text-center text-sm text-muted-foreground">
+              Could not load a local preview for this PDF.
+            </div>
+          ) : (
+            <Document
+              file={previewUrl}
+              loading={<Skeleton className="h-[360px] w-[255px]" />}
+              error={null}
+              onLoadError={() => setLoadError(true)}
+              onLoadSuccess={() => setLoadError(false)}
+            >
+              <Page
+                pageNumber={1}
+                width={255}
+                renderAnnotationLayer={false}
+                renderTextLayer={false}
+                loading={<Skeleton className="h-[360px] w-[255px]" />}
+              />
+            </Document>
+          )
+        ) : (
+          <div className="grid justify-items-center gap-3 text-center text-sm text-muted-foreground">
+            <FileText className="size-10 text-(--upload-preview-accent)" />
+            <span>No file selected</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

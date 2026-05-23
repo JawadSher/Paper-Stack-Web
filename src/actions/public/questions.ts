@@ -5,10 +5,26 @@ import { prisma } from "@/lib/prisma";
 import type { ActionResult, QuestionFilters } from "@/src/types/action-types";
 import { fail, ok } from "@/src/types/action-types";
 
+export type PublicCommonQuestion = Prisma.CommonQuestionGetPayload<{
+  include: {
+    questionPaperLinks: {
+      include: {
+        paper: {
+          select: {
+            id: true;
+            year: true;
+            session: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
 type ChapterQuestions = {
   chapterId: string;
   chapterName: string;
-  questions: CommonQuestion[];
+  questions: PublicCommonQuestion[];
 };
 
 function buildQuestionWhere(
@@ -25,7 +41,7 @@ function buildQuestionWhere(
 
 export async function getCommonQuestions(
   filters: QuestionFilters = {},
-): Promise<ActionResult<CommonQuestion[]>> {
+): Promise<ActionResult<PublicCommonQuestion[]>> {
   try {
     const questions = await prisma.commonQuestion.findMany({
       where: buildQuestionWhere(filters),

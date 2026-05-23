@@ -1,11 +1,11 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   useReactTable,
   type ColumnDef,
   type RowSelectionState,
@@ -64,19 +64,31 @@ import { cn } from "@/lib/utils";
 export type PapersTableProps = {
   papers: AdminPaper[];
   totalPages?: number;
+  totalCount?: number;
   page?: number;
+  pageSize?: number;
   onPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   onStatusChange: (id: string, status: PaperStatus) => void;
   onDelete: (paper: AdminPaper) => void;
   onBulkDelete: (ids: string[]) => void;
 };
 
 function getBoard(paper: AdminPaper) {
-  return boards.find((board) => board.id === paper.boardId);
+  return paper.board ?? boards.find((board) => board.id === paper.boardId);
 }
 
 function getSubject(paper: AdminPaper) {
-  return subjects.find((subject) => subject.id === paper.subjectId);
+  return paper.subject ?? subjects.find((subject) => subject.id === paper.subjectId);
+}
+
+function getPaperAccentStyle(paper: AdminPaper): CSSProperties {
+  const color = getBoard(paper)?.color ?? "var(--ps-coral)";
+
+  return {
+    "--paper-accent": color,
+    "--paper-accent-soft": `color-mix(in srgb, ${color} 12%, transparent)`,
+  } as CSSProperties;
 }
 
 function exportCsv(papers: AdminPaper[]) {
@@ -109,8 +121,11 @@ function exportCsv(papers: AdminPaper[]) {
 export function PapersTable({
   papers,
   totalPages = 1,
+  totalCount = papers.length,
   page = 1,
+  pageSize = 20,
   onPageChange,
+  onPageSizeChange,
   onStatusChange,
   onDelete,
   onBulkDelete,
@@ -150,8 +165,8 @@ export function PapersTable({
           const subject = getSubject(row.original);
 
           return (
-            <div className="flex items-center gap-2">
-              <div className="grid size-8 place-items-center rounded-lg bg-secondary text-ps-coral">
+            <div className="flex items-center gap-2" style={getPaperAccentStyle(row.original)}>
+              <div className="grid size-8 place-items-center rounded-lg bg-(--paper-accent-soft) text-(--paper-accent)">
                 <SubjectIcon subjectName={subject?.name ?? row.original.title} size={17} />
               </div>
               <span className="font-medium">{subject?.name ?? "Unknown"}</span>
@@ -171,7 +186,10 @@ export function PapersTable({
         accessorKey: "classLevel",
         header: "Class",
         cell: ({ row }) => (
-          <span className="rounded-4xl bg-secondary px-2 py-1 text-xs font-medium">
+          <span
+            className="rounded-4xl bg-(--paper-accent-soft) px-2 py-1 text-xs font-medium text-(--paper-accent)"
+            style={getPaperAccentStyle(row.original)}
+          >
             Class {row.original.classLevel}
           </span>
         ),
@@ -277,18 +295,11 @@ export function PapersTable({
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 20,
-      },
-    },
   });
 
   const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
-  const pagination = table.getState().pagination;
-  const from = papers.length ? pagination.pageIndex * pagination.pageSize + 1 : 0;
-  const to = Math.min(papers.length, (pagination.pageIndex + 1) * pagination.pageSize);
+  const from = totalCount ? (page - 1) * pageSize + 1 : 0;
+  const to = Math.min(totalCount, (page - 1) * pageSize + papers.length);
 
   return (
     <div className="space-y-3">
@@ -351,12 +362,12 @@ export function PapersTable({
 
         <div className="flex flex-col gap-3 border-t px-4 py-3 md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {from}-{to} of {papers.length} papers
+            Showing {from}-{to} of {totalCount} papers
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Select
-              value={String(pagination.pageSize)}
-              onValueChange={(value) => table.setPageSize(Number(value))}
+              value={String(pageSize)}
+              onValueChange={(value) => onPageSizeChange?.(Number(value))}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -374,6 +385,7 @@ export function PapersTable({
               size="sm"
               variant="outline"
               disabled={page <= 1}
+              className="disabled:border-border/60 disabled:bg-muted/30 disabled:text-muted-foreground"
               onClick={() => onPageChange?.(page - 1)}
             >
               Previous
@@ -386,6 +398,7 @@ export function PapersTable({
               size="sm"
               variant="outline"
               disabled={page >= totalPages}
+              className="disabled:border-border/60 disabled:bg-muted/30 disabled:text-muted-foreground"
               onClick={() => onPageChange?.(page + 1)}
             >
               Next
@@ -395,7 +408,7 @@ export function PapersTable({
       </div>
 
       <Sheet open={Boolean(selectedPaper)} onOpenChange={(open) => !open && setSelectedPaper(null)}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-4xl">
           {selectedPaper ? (
             <>
               <SheetHeader>

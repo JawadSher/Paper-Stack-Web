@@ -30,18 +30,31 @@ export async function getBoards(
 }
 
 export async function getBoardsByProvince(): Promise<
-  ActionResult<Record<string, Board[]>>
+  ActionResult<Record<string, Array<Board & { paperCount: number }>>>
 > {
   try {
-    const boards = await prisma.board.findMany({
-      where: { isActive: true },
-      orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
-    });
+    const [boards, paperCounts] = await Promise.all([
+      prisma.board.findMany({
+        where: { isActive: true },
+        orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
+      }),
+      prisma.paper.groupBy({
+        by: ["boardId"],
+        where: { status: "LIVE" },
+        _count: { _all: true },
+      }),
+    ]);
+    const paperCountByBoard = new Map(
+      paperCounts.map((row) => [row.boardId, row._count._all]),
+    );
 
-    const grouped = boards.reduce<Record<string, Board[]>>((acc, board) => {
+    const grouped = boards.reduce<Record<string, Array<Board & { paperCount: number }>>>((acc, board) => {
       const key = board.province;
       acc[key] ??= [];
-      acc[key].push(board);
+      acc[key].push({
+        ...board,
+        paperCount: paperCountByBoard.get(board.id) ?? 0,
+      });
       return acc;
     }, {});
 

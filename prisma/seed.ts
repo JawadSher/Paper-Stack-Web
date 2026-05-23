@@ -1,11 +1,49 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, Province } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
 const prisma = new PrismaClient({ adapter });
+
+async function seedBoardClassSubjects() {
+  console.log("Seeding board class subjects...");
+
+  const [boards, subjects] = await Promise.all([
+    prisma.board.findMany({
+      where: { isActive: true },
+      select: { id: true, classes: true },
+    }),
+    prisma.subject.findMany({
+      where: { isActive: true },
+      select: { id: true },
+    }),
+  ]);
+
+  const rows = boards.flatMap((board) =>
+    board.classes.flatMap((classLevel) =>
+      subjects.map((subject) => ({
+        boardId: board.id,
+        subjectId: subject.id,
+        classLevel,
+        isActive: true,
+      })),
+    ),
+  );
+
+  if (!rows.length) {
+    console.log("No active boards or subjects found for board_class_subjects.");
+    return;
+  }
+
+  const result = await prisma.boardClassSubject.createMany({
+    data: rows,
+    skipDuplicates: true,
+  });
+
+  console.log(`Created ${result.count} board_class_subjects links.`);
+}
 
 async function main() {
   console.log("Seeding boards...");
@@ -360,67 +398,69 @@ async function main() {
 
   // console.log('Seeding subjects...')
 
-  const subjectData = [
-    { name: 'Physics', icon: 'atom', isCompulsory: false, displayOrder: 1 },
-    {
-      name: 'Chemistry',
-      icon: 'flask-conical',
-      isCompulsory: false,
-      displayOrder: 2,
-    },
-    { name: 'Biology', icon: 'leaf', isCompulsory: false, displayOrder: 3 },
-    {
-      name: 'Mathematics',
-      icon: 'calculator',
-      isCompulsory: false,
-      displayOrder: 4,
-    },
-    {
-      name: 'Computer Science',
-      icon: 'monitor',
-      isCompulsory: false,
-      displayOrder: 5,
-    },
-    { name: 'English', icon: 'languages', isCompulsory: true, displayOrder: 6 },
-    { name: 'Urdu', icon: 'book-open', isCompulsory: true, displayOrder: 7 },
-    { name: 'Islamiat', icon: 'landmark', isCompulsory: true, displayOrder: 8 },
-    {
-      name: 'Pakistan Studies',
-      icon: 'globe',
-      isCompulsory: true,
-      displayOrder: 9,
-    },
-    {
-      name: 'General Science',
-      icon: 'microscope',
-      isCompulsory: false,
-      displayOrder: 10,
-    },
-    {
-      name: 'Economics',
-      icon: 'trending-up',
-      isCompulsory: false,
-      displayOrder: 11,
-    },
-    {
-      name: 'Statistics',
-      icon: 'bar-chart-2',
-      isCompulsory: false,
-      displayOrder: 12,
-    },
-    { name: 'Psychology', icon: 'brain', isCompulsory: false, displayOrder: 13 },
-    { name: 'Sociology', icon: 'users', isCompulsory: false, displayOrder: 14 },
-  ]
+  // const subjectData = [
+  //   { name: 'Physics', icon: 'atom', isCompulsory: false, displayOrder: 1 },
+  //   {
+  //     name: 'Chemistry',
+  //     icon: 'flask-conical',
+  //     isCompulsory: false,
+  //     displayOrder: 2,
+  //   },
+  //   { name: 'Biology', icon: 'leaf', isCompulsory: false, displayOrder: 3 },
+  //   {
+  //     name: 'Mathematics',
+  //     icon: 'calculator',
+  //     isCompulsory: false,
+  //     displayOrder: 4,
+  //   },
+  //   {
+  //     name: 'Computer Science',
+  //     icon: 'monitor',
+  //     isCompulsory: false,
+  //     displayOrder: 5,
+  //   },
+  //   { name: 'English', icon: 'languages', isCompulsory: true, displayOrder: 6 },
+  //   { name: 'Urdu', icon: 'book-open', isCompulsory: true, displayOrder: 7 },
+  //   { name: 'Islamiat', icon: 'landmark', isCompulsory: true, displayOrder: 8 },
+  //   {
+  //     name: 'Pakistan Studies',
+  //     icon: 'globe',
+  //     isCompulsory: true,
+  //     displayOrder: 9,
+  //   },
+  //   {
+  //     name: 'General Science',
+  //     icon: 'microscope',
+  //     isCompulsory: false,
+  //     displayOrder: 10,
+  //   },
+  //   {
+  //     name: 'Economics',
+  //     icon: 'trending-up',
+  //     isCompulsory: false,
+  //     displayOrder: 11,
+  //   },
+  //   {
+  //     name: 'Statistics',
+  //     icon: 'bar-chart-2',
+  //     isCompulsory: false,
+  //     displayOrder: 12,
+  //   },
+  //   { name: 'Psychology', icon: 'brain', isCompulsory: false, displayOrder: 13 },
+  //   { name: 'Sociology', icon: 'users', isCompulsory: false, displayOrder: 14 },
+  // ]
 
-  await Promise.all(
-    subjectData.map((subject) =>
-      prisma.subject.upsert({
-        where: { name: subject.name },
-        update: {},
-        create: subject,
-      })
-    )
-  )
+  // await Promise.all(
+  //   subjectData.map((subject) =>
+  //     prisma.subject.upsert({
+  //       where: { name: subject.name },
+  //       update: {},
+  //       create: subject,
+  //     })
+  //   )
+  // )
+
+  await seedBoardClassSubjects();
 
   // console.log('Seeding feature flags...')
 
